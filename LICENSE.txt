@@ -1,0 +1,79 @@
+SPLASH ANIMATOR SOURCE-AVAILABLE LICENSE
+Version 1.0 — November 19, 2026
+
+Copyright (c) 2026 Splash Animator contributors and respective copyright holders.
+All rights reserved.
+
+IMPORTANT: This software is source-available, not open-source software as defined by the Open Source Initiative. Read these terms before using, modifying, or compiling the Software.
+
+1. DEFINITIONS
+
+"Software" means the Splash Animator source code, associated project files, documentation, and other materials distributed with this license, excluding third-party components governed by their own licenses.
+
+"You" means the individual or legal entity exercising rights under this license.
+
+"Official Release" means a binary or other distribution made or expressly authorized by the Software's copyright holder.
+
+"Commercial Use" means use of the Software, including self-compiled or modified versions, in connection with a business, employment, paid services, client work, advertising-supported content, monetized publications, sale or licensing of output, or any other direct or indirect revenue-generating activity, whether or not revenue is actually earned.
+
+"Commercial License" means a separate paid license expressly authorized by the copyright holder that permits Commercial Use under its own terms.
+
+2. PERMITTED USE
+
+Subject to compliance with this license, the copyright holder grants You a non-exclusive, worldwide, royalty-free, revocable upon breach license to:
+
+(a) access, read, and study the Software's source code;
+(b) download and make copies of the source code for Your own personal, noncommercial use;
+(c) modify the source code for Your own personal, noncommercial use; and
+(d) compile and run the Software and Your modifications solely for personal, noncommercial use. Commercial Use requires a valid Commercial License purchased or otherwise expressly granted by the copyright holder before such use begins.
+
+These permissions do not grant rights to distribute the Software or modified versions to third parties. Separate terms may apply to Official Releases, paid features, hosted services, and support.
+
+3. COMMERCIAL USE REQUIREMENT
+
+You must obtain a valid Commercial License before any Commercial Use of the Software, including a version compiled from source or modified by You. Access to source code, the ability to compile it, and possession of an unofficial build do not waive this requirement. The applicable Commercial License controls the scope, duration, and permitted users or devices of commercial rights.
+
+4. RESTRICTIONS
+
+Except with prior written permission from the applicable copyright holder, You may not:
+
+(a) publish, sublicense, sell, rent, lease, or otherwise distribute compiled versions of the Software or modified versions to third parties;
+(b) redistribute the Software's source code or modified source code outside Your organization, except by linking to the copyright holder's authorized repository;
+(c) use the Software or substantial portions of its code as the basis for a product or service distributed or offered to third parties; or
+(d) remove or alter copyright notices, license notices, or attribution notices.
+
+You may not grant third parties rights that You do not have under this license.
+
+5. CONTRIBUTIONS
+
+This license does not by itself grant the project owner rights to relicense contributions submitted by others. Contributions are accepted only under separately published contribution terms or a written agreement. Unless such terms are in place, do not submit third-party code for inclusion in the project.
+
+6. THIRD-PARTY COMPONENTS
+
+Third-party code, libraries, assets, and dependencies remain subject to their respective licenses. If any provision of this license conflicts with a mandatory license condition applicable to a third-party component, that component's license controls for that component. This license does not supersede third-party rights.
+
+7. OWNERSHIP
+
+The Software is licensed, not sold. All rights not expressly granted are reserved by their respective owners. No trademark rights are granted under this license.
+
+8. TERMINATION
+
+Your rights under this license terminate automatically if You violate its terms. Upon termination, You must stop using, modifying, and compiling the Software and delete copies under Your control, except where retention is required by law. The copyright holder may reinstate Your rights in writing.
+
+9. DISCLAIMER OF WARRANTIES
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.
+
+10. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COPYRIGHT HOLDERS SHALL NOT BE LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR LOSS OF PROFITS, DATA, OR BUSINESS ARISING FROM THE SOFTWARE OR THIS LICENSE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+11. SEVERABILITY
+
+If any provision is held unenforceable, the remaining provisions will remain effective to the extent permitted by law.
+
+12. ADDITIONAL PERMISSIONS
+
+For permission to redistribute, commercially license, or otherwise use the Software beyond the rights granted here, contact the project owner through the official Splash Animator repository.
+
+END OF LICENSE
