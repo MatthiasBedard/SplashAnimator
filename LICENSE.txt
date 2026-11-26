@@ -1,5 +1,5 @@
 SPLASH ANIMATOR SOURCE-AVAILABLE LICENSE
-Version 1.0 — November 19, 2026
+Version 1.1 — November 26, 2026
 
 Copyright (c) 2026 Splash Animator contributors and respective copyright holders.
 All rights reserved.
@@ -43,6 +43,8 @@ Except with prior written permission from the applicable copyright holder, You m
 (d) remove or alter copyright notices, license notices, or attribution notices.
 
 You may not grant third parties rights that You do not have under this license.
+
+To the extent permitted by applicable law, You may not modify the Software or remove, disable, or bypass its license checks to enable or use any feature or edition reserved for paid license holders beyond the access authorized by a valid license, an authorized trial, or written permission from the applicable copyright holder. This restriction applies even to personal, noncommercial use and covers Official Releases and copies You compile or modify Yourself.
 
 5. CONTRIBUTIONS
 
