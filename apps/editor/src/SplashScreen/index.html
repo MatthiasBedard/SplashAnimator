@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Splash Animator — Startup</title>
+<style>
+:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#172b49;font-synthesis:none}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#17243a}.splash{position:relative;width:min(1050px,100vw);aspect-ratio:16/9;min-height:460px;overflow:hidden;background:linear-gradient(125deg,#f3fbff,#d8f1ff);box-shadow:0 30px 100px #07101b77}.beach{position:absolute;inset:0 auto 0 0;width:48%;background:url('beach.jpg') center/cover no-repeat}.beach:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 56%,#e7f7ff 100%)}.panel{position:absolute;inset:0 0 0 38%;background:linear-gradient(112deg,#e8f8ffdb 0%,#f9fdff 45%,#d4f0ff 100%);clip-path:polygon(17% 0,100% 0,100% 100%,0 100%,9% 81%,4% 60%,13% 41%,7% 20%)}.bubble{position:absolute;border-radius:55% 45% 65% 35%;background:#3ab9f82a}.b1{width:220px;height:110px;right:-50px;bottom:30px;transform:rotate(-26deg)}.b2{width:85px;height:40px;right:60px;top:100px;transform:rotate(-36deg)}.content{position:absolute;inset:0 0 0 40%;padding:35px 46px 28px 24px;display:flex;flex-direction:column;align-items:center}.license{align-self:flex-end;display:flex;align-items:center;gap:8px;padding:9px 15px;border:1px solid #bfdcf4;border-radius:40px;background:#ffffffb8;font-size:12px;font-weight:800;color:#0757ad}.license .dot{width:8px;height:8px;border-radius:50%;background:#f2ac1e}.license.paid .dot{background:#18a874}.logo{display:block;width:min(85%,430px);height:240px;object-fit:contain;mix-blend-mode:multiply;margin-top:4px}.tagline{margin-top:-8px;font-size:12px;letter-spacing:5px;font-weight:700;color:#60748c;text-align:center}.grow{flex:1}.status{width:90%;text-align:center;font-size:13px;color:#46617d}.bar{height:8px;margin:12px 0 8px;background:#c6dff2;border-radius:10px;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#00b8f8,#0069ef);border-radius:10px;transition:width .35s ease}.progress-text{font-size:11px;color:#7891aa}.footer{display:grid;grid-template-columns:1fr 1fr;gap:22px;border-top:1px solid #b7d3e7;margin-top:21px;padding-top:17px;font-size:11px;line-height:1.7;color:#5c728a}.footer strong{color:#1a3554;font-size:12px}.footer .right{border-left:1px solid #b7d3e7;padding-left:20px}.footer span{display:block}.copyright{font-size:10px}.watermark{position:absolute;left:20px;bottom:20px;font-size:10px;letter-spacing:2px;font-weight:800;color:#ffffffd9;text-shadow:0 2px 6px #0008}@media(max-width:700px){.splash{min-height:390px}.content{padding:22px 20px 18px 5px}.logo{height:190px;width:95%}.tagline{font-size:9px;letter-spacing:2px}.footer{font-size:9px;gap:10px}.footer strong{font-size:10px}.footer .right{padding-left:10px}.license{font-size:10px;padding:7px 9px}}
+</style>
+</head>
+<body>
+<main class="splash" role="status" aria-label="Splash Animator startup">
+ <div class="beach"></div><div class="panel"></div><div class="bubble b1"></div><div class="bubble b2"></div>
+ <!-- div class="watermark">IMAGINE · CREATE · ANIMATE</div -->
+ <section class="content">
+  <div class="license" id="licenseBadge"><i class="dot"></i><span id="licenseLabel">Trial Edition</span></div>
+  <img class="logo" src="logo.png" alt="Splash Animator logo">
+  <div class="tagline">IMAGINE · CREATE · SHARE</div><div class="grow"></div>
+  <div class="status"><span id="status">Starting Splash Animator…</span><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar"><div class="fill" id="fill"></div></div><div class="progress-text" id="percent">0%</div></div>
+  <div class="footer"><div><strong>Splash Animator <span id="version">v1.0.0</span></strong><span id="build">Build 1000 · 64-bit</span><span class="copyright" id="copyright">© 2026 Splash Animator. All rights reserved.</span></div><div class="right"><strong id="edition">Trial License</strong><span id="owner">Licensed to: Evaluation User</span><span id="expiry">Evaluation period</span><span id="publisher">Publisher: Splash Animator</span></div></div>
+ </section>
+</main>
+<script>
+// Set initial app details here, or call window.SplashAnimatorSplash.update() from your desktop host.
+const defaults={version:'1.0.0',build:'1000',architecture:'x64',edition:'Pro',license:'trial',owner:'Evaluation User',daysRemaining:15,expires:null,publisher:'Splash Animator',copyrightOwner:'Splash Animator',year:2026,progress:35,status:'Loading workspace…'};
+function update(data={}){
+ Object.assign(defaults,data);const d=defaults;
+ const paid=String(d.license).toLowerCase()==='paid';
+ const badge=document.getElementById('licenseBadge');badge.classList.toggle('paid',paid);
+ document.getElementById('licenseLabel').textContent=paid?`${d.edition} · Licensed`:`${d.edition} · Trial${d.daysRemaining!=null?' · '+d.daysRemaining+' days left':''}`;
+ document.getElementById('version').textContent='v'+d.version;
+ document.getElementById('build').textContent=`Build ${d.build} · ${d.architecture}`;
+ document.getElementById('copyright').textContent=`© ${d.year} ${d.copyrightOwner}. All rights reserved.`;
+ document.getElementById('edition').textContent=`${d.edition} — ${paid?'Paid License':'Trial License'}`;
+ document.getElementById('owner').textContent=`Licensed to: ${d.owner}`;
+ document.getElementById('expiry').textContent=paid?'Activated':d.expires?`Expires: ${d.expires}`:d.daysRemaining!=null?`${d.daysRemaining} days remaining`:'Evaluation period';
+ document.getElementById('publisher').textContent=`Publisher: ${d.publisher}`;
+ const pct=Math.max(0,Math.min(100,Number(d.progress)||0));document.getElementById('fill').style.width=pct+'%';document.getElementById('percent').textContent=Math.round(pct)+'%';document.getElementById('progressBar').setAttribute('aria-valuenow',pct);
+ document.getElementById('status').textContent=d.status;
+}
+window.SplashAnimatorSplash={update};update();
+// For a static preview only, open with ?demo=1 to animate progress.
+if(new URLSearchParams(location.search).has('demo')){let p=0;const t=setInterval(()=>{p=Math.min(100,p+2);update({progress:p,status:p===100?'Ready to create!':'Loading workspace…'});if(p===100)clearInterval(t)},100)}
+</script>
+</body></html>

@@ -1,0 +1,57 @@
+{
+  "name": "splash-animator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "vite --config apps/editor/vite.config.ts",
+    "build": "vite build --config apps/editor/vite.config.ts",
+    "check": "svelte-check --tsconfig tsconfig.json && tsc --noEmit",
+    "check:types": "tsc --noEmit --incremental --tsBuildInfoFile node_modules/.cache/splash-types.tsbuildinfo",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:merge-drawing": "vitest run tests/brush-commit.test.ts tests/brush-overpaint.test.ts tests/brush-drop-join.test.ts tests/merge-fail-drop.test.ts tests/curve-error.test.ts tests/long-brush.test.ts tests/round-brush-trace.test.ts tests/simplify-error.test.ts tests/stroke-optimize.test.ts tests/clip-paint.test.ts tests/ink-paint-partition.test.ts tests/stroke-drop.test.ts tests/geometry-worker.test.ts tests/crosshatched-paint.test.ts tests/pencil-crossing-sequence.test.ts tests/join-recolored-fills.test.ts tests/merge-drawing-cycle.test.ts tests/saved-mixed-drawing.test.ts tests/another-merge-fail.test.ts tests/broken-pencil.test.ts tests/broken-fill-join.test.ts tests/compound-fit.test.ts tests/attached-fill.test.ts && pnpm test:production --workers=1 tests/e2e/brush-pencil-crossings.spec.ts tests/e2e/bucket.spec.ts tests/e2e/move-selection-retention.spec.ts",
+    "test:iterate": "playwright test --config playwright.iteration.config.ts",
+    "test:licensing": "node scripts/test-licensing.mjs",
+    "test:native-project": "node scripts/test-native-project.mjs",
+    "test:production": "pnpm build && playwright test --config playwright.production.config.ts",
+    "lint": "node --stack-size=4096 ./node_modules/eslint/bin/eslint.js .",
+    "lint:changed": "node scripts/lint-changed.mjs",
+    "desktop": "pnpm --filter @splash/editor desktop",
+    "desktop:build": "pnpm --filter @splash/editor desktop:build",
+    "format": "prettier --write .",
+    "bench": "node scripts/benchmark.mjs",
+    "bench:brush": "node scripts/brush-redraw-benchmark.mjs",
+    "bench:brush-merge": "node scripts/brush-merge-benchmark.mjs",
+    "bench:brush-editor": "node scripts/brush-editor-benchmark.mjs"
+  },
+  "dependencies": {
+    "@jitl/quickjs-singlefile-browser-release-sync": "0.32.0",
+    "@tauri-apps/api": "^2.8.0",
+    "bidi-js": "1.0.3",
+    "monaco-editor": "0.57.0",
+    "pixi.js": "^8.13.0",
+    "quickjs-emscripten-core": "0.32.0",
+    "svelte": "^5.57.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "@tauri-apps/cli": "^2.8.4",
+    "@types/node": "^22.18.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-svelte": "^3.12.0",
+    "globals": "^16.3.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte-check": "^4.3.1",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  }
+}

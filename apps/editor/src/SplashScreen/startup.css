@@ -1,0 +1,28 @@
+:root {
+  --application-menu-height: 30px;
+}
+
+.startup-screen {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  overflow: auto;
+  background: #17243a;
+}
+
+.desktop-splash-menu {
+  position: fixed;
+  z-index: 10001;
+  inset: 0 0 auto;
+  height: var(--application-menu-height);
+  background: #292c34;
+}
+
+.startup-screen.desktop-startup-screen {
+  inset-block-start: var(--application-menu-height);
+}
+
+.startup-screen[data-ready] {
+  background: #11151cbf;
+  backdrop-filter: blur(4px);
+}

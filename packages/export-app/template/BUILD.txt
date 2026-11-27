@@ -1,0 +1,20 @@
+Splash Animator Windows project player
+
+1. Extract every file in this archive into a new writable folder.
+2. Install Rust with the Windows MSVC toolchain, Microsoft C++ Build Tools
+   (Desktop development with C++ and Windows SDK), and Microsoft Edge WebView2.
+   See https://v2.tauri.app/start/prerequisites/ for installation instructions.
+3. Open a terminal in the extracted folder and run:
+       cargo build --release --locked
+   The first build may download the locked Rust dependencies.
+4. Open target\release\splash-project-player.exe. The player contains your
+   animation and requires WebView2 on the computer running it.
+
+The build produces an unsigned Windows executable for local testing. If your
+distribution requires publisher signing, use Windows SignTool and your own
+code-signing certificate and timestamp service. This kit creates neither an
+installer nor a signing credential.
+
+The title, identifier, version and icon paths are in tauri.conf.json.
+Replace icon.ico and icon.png with matching artwork before building if desired.
+The player uses the same artwork and playback as ordinary Splash HTML export.

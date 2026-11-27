@@ -1,0 +1,21 @@
+Splash Animator iPhone and iPad player
+
+1. Extract the whole archive into a writable folder on a Mac with Xcode and
+   the iOS platform installed. The app deployment target is iOS/iPadOS 16.
+2. Open SplashPlayer.xcodeproj and choose the SplashPlayer target. To try
+   the project locally, choose an installed iOS Simulator and run it.
+   To compile without device signing from Terminal, use:
+
+   xcodebuild -project SplashPlayer.xcodeproj -target SplashPlayer -sdk iphonesimulator -configuration Debug CODE_SIGNING_ALLOWED=NO build
+
+3. For a physical iPhone or iPad, sign in to Xcode, choose your team under
+   Signing & Capabilities, and set a unique bundle identifier if needed.
+   Pair and select the device as the run destination. For TestFlight or App
+   Store distribution, archive for a device and follow Apple's distribution
+   workflow with your own account, signing and provisioning.
+
+The bundle contains the ordinary, script-free Splash animation. It needs no
+server or network access to play. No certificate, provisioning profile, IPA,
+or App Store submission is included.
+
+https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices

@@ -1,0 +1,33 @@
+# Run these manually on dedicated desktop runners with the Tauri prerequisites.
+pipelines:
+  custom:
+    native-windows:
+      - step:
+          name: Build and launch in WebView2
+          runs-on: [self.hosted, windows, splash.desktop]
+          script:
+            - pnpm install --frozen-lockfile
+            - pnpm build
+            - cargo test --locked --manifest-path apps/editor/src-tauri/Cargo.toml
+            - cargo build --release --locked --features 'tauri/custom-protocol,native-smoke' --manifest-path apps/editor/src-tauri/Cargo.toml
+            - node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator.exe
+    native-macos:
+      - step:
+          name: Build and launch in WKWebView
+          runs-on: [self.hosted, macos, splash.desktop]
+          script:
+            - pnpm install --frozen-lockfile
+            - pnpm build
+            - cargo test --locked --manifest-path apps/editor/src-tauri/Cargo.toml
+            - cargo build --release --locked --features 'tauri/custom-protocol,native-smoke' --manifest-path apps/editor/src-tauri/Cargo.toml
+            - node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator
+    native-linux:
+      - step:
+          name: Build and launch in WebKitGTK
+          runs-on: [self.hosted, linux.shell, splash.desktop]
+          script:
+            - pnpm install --frozen-lockfile
+            - pnpm build
+            - cargo test --locked --manifest-path apps/editor/src-tauri/Cargo.toml
+            - cargo build --release --locked --features tauri/custom-protocol,native-smoke --manifest-path apps/editor/src-tauri/Cargo.toml
+            - xvfb-run -a node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator

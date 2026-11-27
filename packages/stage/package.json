@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "name": "@splash/stage",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@splash/animation": "workspace:*",
+    "@splash/document": "workspace:*",
+    "pixi.js": "^8.13.0"
+  }
+}

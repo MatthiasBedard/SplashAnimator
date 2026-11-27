@@ -1,0 +1,57 @@
+name: Verify editor
+on: [push, pull_request]
+jobs:
+  web:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install chromium
+      - run: pnpm test:e2e
+      - run: pnpm exec playwright test --config playwright.production.config.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failures
+          path: test-results
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xvfb xauth
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: cargo test --locked --manifest-path apps/editor/src-tauri/Cargo.toml
+      - run: cargo build --release --locked --features tauri/custom-protocol,native-smoke --manifest-path apps/editor/src-tauri/Cargo.toml
+      - name: Open bundled editor in WebView2
+        if: runner.os == 'Windows'
+        run: node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator.exe
+      - name: Open bundled editor in WKWebView
+        if: runner.os == 'macOS'
+        run: node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator
+      - name: Open bundled editor in WebKitGTK
+        if: runner.os == 'Linux'
+        run: xvfb-run -a node scripts/native-smoke.mjs apps/editor/src-tauri/target/release/splash-animator

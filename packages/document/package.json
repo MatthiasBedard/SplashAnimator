@@ -1,0 +1,12 @@
+{
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "name": "@splash/document",
+  "exports": {
+    "./node-store": "./src/node-store.ts",
+    "./storage": "./src/storage.ts",
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@splash/editor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "dependencies": {
+    "@splash/document": "workspace:*",
+    "svelte": "^5.57.2",
+    "@splash/geometry": "workspace:*",
+    "@tauri-apps/api": "^2.8.0",
+    "@splash/animation": "workspace:*",
+    "@splash/export-web": "workspace:*",
+    "@splash/stage": "workspace:*"
+  }
+}

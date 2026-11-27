@@ -1,0 +1,49 @@
+# Build output and dependency caches
+node_modules/
+dist/
+target/
+.npm-cache/
+.pnpm-store/
+/apps/editor/src-tauri/gen/
+
+# Local project data and test output
+.local-projects/
+.e2e-projects/
+test-results/
+playwright-report/
+*.log
+TEST*.xml
+
+# Local development notes, reference material, and benchmark reports
+/.local-docs/
+/AGENTS.md
+
+# Local credentials and configuration
+.env
+.env.*
+!.env.example
+*.splashlicense
+*.key
+*.pfx
+*.p12
+
+# Editor and filesystem metadata
+.vs/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Standalone builds and generated media
+*.app
+*.exe
+*.war
+*.class
+*.jar
+*.py[cod]
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+

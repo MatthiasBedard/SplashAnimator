@@ -1,0 +1,19 @@
+[package]
+name = "splash-project-player"
+version = "1.0.0"
+edition = "2021"
+build = "build.rs"
+
+[[bin]]
+name = "splash-project-player"
+path = "main.rs"
+
+[build-dependencies]
+tauri-build = "=2.7.5"
+
+[dependencies]
+tauri = { version = "=2.12.6", features = ["custom-protocol"] }
+
+[profile.release]
+opt-level = 1
+strip = true

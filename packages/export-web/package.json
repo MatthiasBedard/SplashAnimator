@@ -1,0 +1,10 @@
+{
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "name": "@splash/export-web",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@splash/document": "workspace:*"
+  }
+}

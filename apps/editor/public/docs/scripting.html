@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scripting · Splash Animator Documentation</title>
+    <link rel="stylesheet" href="docs.css" />
+  </head>
+  <body>
+    <main>
+      <a href="index.html">All documentation</a>
+      <h1>Scripting in Splash Animator</h1>
+      <nav aria-label="On this page">
+        <ul>
+          <li><a href="#start">Getting started</a></li>
+          <li><a href="#timeline">Timeline, runtime, state, and input</a></li>
+          <li><a href="#stage">Stage and instances</a></li>
+          <li><a href="#library">Library</a></li>
+          <li><a href="#text">Text</a></li>
+          <li><a href="#sound">Sound</a></li>
+          <li><a href="#types">Types and scope</a></li>
+        </ul>
+      </nav>
+
+      <section aria-labelledby="start">
+        <h2 id="start">Write and preview a frame script</h2>
+        <ol>
+          <li>
+            Right-click a frame cell or its position on the timeline ruler and choose <strong>Script…</strong>.
+            You can also use <strong>Control → Edit current frame source…</strong> on the scene.
+          </li>
+          <li>
+            Enter TypeScript directly as a frame body. Try the example below. Type
+            <code>timeline.</code> or press <kbd>Ctrl</kbd>+<kbd>Space</kbd> for suggestions. Hover
+            over a name to see its type.
+          </li>
+          <li>
+            Frame edits stay in a draft while you type. They attach to the frame when you leave the
+            code editor, switch tabs, or close it. Press <kbd>Ctrl+S</kbd> (<kbd>Cmd+S</kbd> on macOS)
+            to apply them immediately. A new script opened from the timeline starts with
+            <code>// Code goes here.</code> and appears in Project Explorer immediately. Use
+            <strong>Check TypeScript</strong> for diagnostics, and save the project to keep its
+            frame scripts on disk.
+          </li>
+          <li>
+            Project TypeScript files stay as drafts when you switch tabs or leave the code editor.
+            Click <strong>Save file</strong> or press <kbd>Ctrl+S</kbd> (<kbd>Cmd+S</kbd> on macOS)
+            to write the active file to the project folder.
+          </li>
+          <li>
+            In the browser editor, choose <strong>Control → Preview saved scripts…</strong>. Prepare
+            the preview and step through it to inspect the timeline, state, and resulting artwork.
+          </li>
+        </ol>
+        <p>
+          An <strong>S</strong> in a timeline frame cell marks attached source. The
+          <strong>Frame scripts</strong> section in Project Explorer lists attached scripts.
+          On the scene, symbol scripts are grouped by symbol name.
+          In Open scripts, use the arrow keys to move between tabs, Enter to open the focused tab,
+          and Delete to close it.
+        </p>
+        <pre><code>const visits = typeof state.visits === "number" ? state.visits : 0;
+state.visits = visits + 1;
+timeline.stop();</code></pre>
+        <p>
+          This counts visits to the scripted frame and stops playback there. The first frame is
+          <code>0</code> in code and <code>1</code> in the editor. Use an authored frame label when
+          you want a jump to keep working after the timing changes.
+        </p>
+        <p>
+          Frame scripts execute in explicit script previews and interactive HTML. Checking source,
+          ordinary timeline playback, Test Movie, and ordinary exports do not execute them. The
+          bounded runtime has no direct access to browser APIs, the network, or the filesystem.
+        </p>
+        <p>
+          Symbol frame scripts are attached to a symbol’s local frame. When working in the isolated
+          symbol timeline, edits save to the draft when you leave the code editor. Apply the symbol timeline to keep them. Use
+          <strong>Inspect local timeline scripts</strong> where available, or enable
+          <strong>Run placed symbol frame scripts</strong> in the browser scene preview for eligible
+          placements.
+        </p>
+        <h3>Download interactive HTML</h3>
+        <p>
+          In a built editor, open <strong>Control → Preview saved scripts…</strong> and choose
+          <strong>Download interactive script HTML</strong>. Open the downloaded file in a browser,
+          then choose <strong>Play scripts</strong>, <strong>Step script</strong>, or enter a JSON
+          object and choose <strong>Send JSON</strong>. The file includes its artwork and script
+          runtime and can open offline. Interactive HTML supports saved main-timeline scripts using
+          <code>timeline</code>, <code>runtime</code>, <code>state</code>, and JSON <code>input</code>. Use the editor's
+          script previews for stage mutations, text, sound, or nested script execution.
+        </p>
+      </section>
+
+      <section aria-labelledby="timeline">
+        <h2 id="timeline">Timeline, runtime, state, and input</h2>
+        <dl>
+          <dt>
+            <code>timeline.currentFrame</code>, <code>timeline.totalFrames</code>,
+            <code>timeline.fps</code>, <code>timeline.playing</code>
+          </dt>
+          <dd>
+            Read the zero-based frame, frame count, frames per second, or playback state of this
+            script’s timeline.
+          </dd>
+          <dt><code>timeline.play()</code>, <code>timeline.stop()</code></dt>
+          <dd>Resume or pause playback.</dd>
+          <dt>
+            <code>timeline.gotoAndPlay(frame)</code>, <code>timeline.gotoAndStop(frame)</code>
+          </dt>
+          <dd>
+            Jump to a zero-based integer frame index or an exact label on this timeline. An
+            out-of-range index or unknown label raises a script error.
+          </dd>
+          <dt><code>runtime.random()</code></dt>
+          <dd>Return a seeded number from 0 inclusive to 1 exclusive. Restoring a checkpoint resumes the same sequence.</dd>
+          <dt><code>state</code></dt>
+          <dd>
+            Store values between dispatches in the current script session. Values can be strings,
+            finite numbers, booleans, null, arrays, or objects built from those values. Use your own
+            keys, such as <code>state.visits</code>. Reset the preview to start a fresh session.
+          </dd>
+          <dt><code>input</code></dt>
+          <dd>
+            Read values delivered to the current dispatch. The preview can send JSON or captured
+            keyboard and pointer input. A qualifying button release can provide
+            <code>input.buttonActivation</code>. Check whether optional values are present before
+            using them.
+          </dd>
+          <dt><code>input.textInput</code></dt>
+          <dd>
+            An optional text edit with <code>binding</code>, <code>value</code>,
+            <code>selectionStart</code>, <code>selectionEnd</code>, and
+            <code>selectionDirection</code>.
+          </dd>
+        </dl>
+      </section>
+
+      <section aria-labelledby="stage">
+        <h2 id="stage">Stage and instances</h2>
+        <p>
+          <code>stage</code> can be undefined. Use optional chaining for lookups or guard it
+          before making changes. Stage changes affect the preview, while the authored project stays
+          as saved.
+        </p>
+        <pre><code>if (stage) {
+  const pose = stage.getTransform("player");
+  if (pose) {
+    stage.setTransform("player", { ...pose, x: pose.x + 12 });
+  }
+}</code></pre>
+        <p>
+          Name the placed graphic <code>player</code> in the editor before trying this example. Use
+          a layer ID to disambiguate duplicate instance names.
+        </p>
+        <dl>
+          <dt>
+            <code>stage.width</code>, <code>stage.height</code>,
+            <code>stage.layerCount</code>
+          </dt>
+          <dd>Read stage dimensions and layer count.</dd>
+          <dt>
+            <code>getInstance(name, layerId?)</code> → <code>SplashPlacement | undefined</code>
+          </dt>
+          <dd>Find an authored instance exposed on the current frame.</dd>
+          <dt>
+            <code>getTransform(name, layerId?)</code>,
+            <code>setTransform(name, transform, layerId?)</code>
+          </dt>
+          <dd>
+            Read or change the absolute position and rotation of an eligible named graphic. Supply
+            finite <code>x</code> and <code>y</code> coordinates and a <code>rotation</code> in
+            degrees.
+          </dd>
+          <dt>
+            <code>getBasis(name, layerId?)</code>, <code>setBasis(name, basis, layerId?)</code>
+          </dt>
+          <dd>
+            Read or change local scale, shear, or reflection before rotation. The basis tuple
+            <code>[a, b, c, d]</code> maps <code>(x, y)</code> to
+            <code>(a*x + c*y, b*x + d*y)</code>. Identity is <code>[1, 0, 0, 1]</code>.
+          </dd>
+          <dt><code>setVisible(name, visible, layerId?)</code></dt>
+          <dd>
+            Set preview visibility on an eligible graphic or button exposure without changing its
+            playback.
+          </dd>
+          <dt>
+            <code>getChildInstance(parentName, name, layerId?)</code>,
+            <code>setChildVisible(parentName, name, visible, layerId?)</code>
+          </dt>
+          <dd>
+            Find or change the visibility of an exposed named graphic or button child of an eligible
+            parent.
+          </dd>
+          <dt><code>spawnGraphic(name, symbolId, position)</code></dt>
+          <dd>
+            Place a captured static graphic by symbol ID under a preview-owned name. Use the library
+            methods below to place items by link name instead.
+          </dd>
+          <dt><code>getSpawned(name)</code>, <code>removeSpawned(name)</code></dt>
+          <dd>Read a spawned item’s position and source ID, or remove it from the preview.</dd>
+        </dl>
+      </section>
+
+      <section aria-labelledby="library">
+        <h2 id="library">Library links</h2>
+        <p>
+          Use an item’s authored <strong>Link Name</strong> as the lookup key. A link is separate
+          from the item’s display name or an instance name on the stage.
+        </p>
+        <dl>
+          <dt>
+            <code>stage.library.get(link)</code> → <code>SplashLibraryItem | undefined</code>
+          </dt>
+          <dd>
+            Get metadata for a <code>symbol</code>, <code>bitmap</code>, or <code>audio</code> item.
+            Check <code>kind</code> before using kind-specific properties.
+          </dd>
+          <dt><code>stage.library.spawnGraphic(link, name, position)</code></dt>
+          <dd>Place an eligible linked symbol using its authored playback default.</dd>
+          <dt><code>stage.library.spawnBitmap(link, name, position)</code></dt>
+          <dd>
+            Place an eligible linked bitmap at its natural size. Both spawn methods take a
+            preview-owned name and an <code>{ x, y, rotation }</code> position.
+          </dd>
+        </dl>
+        <pre><code>const library = stage?.library;
+const item = library?.get("logo");
+if (library &amp;&amp; item?.kind === "bitmap" &amp;&amp; item.canSpawn) {
+  library.spawnBitmap("logo", "previewLogo", { x: 40, y: 24, rotation: 0 });
+}</code></pre>
+      </section>
+
+      <section aria-labelledby="text">
+        <h2 id="text">Dynamic text</h2>
+        <dl>
+          <dt><code>splashText.set(binding, content)</code></dt>
+          <dd>Write a string to a dynamic text binding in the current scope.</dd>
+          <dt><code>splashText.setForInstance(instanceName, binding, content)</code></dt>
+          <dd>Write a string to a text binding on an eligible named instance.</dd>
+        </dl>
+        <p>
+          For a dynamic text field with the binding <code>score</code>, call
+          <code>splashText.set("score", "100")</code>.
+        </p>
+      </section>
+
+      <section aria-labelledby="sound">
+        <h2 id="sound">Scripted sound</h2>
+        <p>
+          Use <code>stage?.sound</code> in a preview with
+          <strong>Enable scripted sound</strong> selected and linked PCM16 WAV audio available.
+        </p>
+        <dl>
+          <dt><code>play(link, offsetSamples?, gain?)</code></dt>
+          <dd>
+            Replace the current voice with the linked WAV. The optional offset is in zero-based
+            samples.
+          </dd>
+          <dt><code>stop()</code>, <code>pause()</code>, <code>resume()</code></dt>
+          <dd>Stop the voice, freeze its logical sample position, or resume it.</dd>
+          <dt><code>seekSamples(offsetSamples)</code>, <code>positionSamples()</code></dt>
+          <dd>
+            Seek while preserving the paused state or read the current logical sample position. The
+            position can be undefined when no voice is active.
+          </dd>
+        </dl>
+        <p>
+          For a WAV with the link <code>click</code>, call
+          <code>stage?.sound?.play("click")</code>.
+        </p>
+      </section>
+
+      <section aria-labelledby="types">
+        <h2 id="types">Types and scope</h2>
+        <p>
+          The scripting API provides objects to a frame body. Its TypeScript interfaces describe
+          those objects and are available as type annotations. Use the supplied objects directly.
+          The API exposes no constructors for these interfaces.
+        </p>
+        <dl>
+          <dt>
+            <code>SplashTimeline</code>, <code>SplashState</code>, <code>SplashValue</code>,
+            <code>SplashInput</code>, <code>SplashInputValue</code>, <code>SplashTextInput</code>
+          </dt>
+          <dd>
+            Playback, persistent session data, and delivered input. Input values are read-only.
+          </dd>
+          <dt>
+            <code>SplashStage</code>, <code>SplashPlacement</code>,
+            <code>SplashPlacementTransform</code>, <code>SplashPlacementBasis</code>
+          </dt>
+          <dd>
+            Stage capabilities and placement data. A placement includes <code>id</code>,
+            <code>name</code>, <code>layerId</code>, <code>symbolId</code>, <code>visible</code>,
+            and optional <code>parentId</code>.
+          </dd>
+          <dt><code>SplashLibrary</code>, <code>SplashLibraryItem</code></dt>
+          <dd>
+            Library operations and metadata. All items have <code>link</code>, <code>id</code>, and
+            <code>name</code>. Symbols and bitmaps add <code>width</code>, <code>height</code>, and
+            <code>canSpawn</code>. Symbols provide <code>defaultPlayback</code> and optional
+            <code>timed</code>. Audio provides <code>format</code>, <code>sampleRate</code>,
+            <code>channels</code>, and <code>frames</code>.
+          </dd>
+          <dt><code>SplashDynamicText</code></dt>
+          <dd>Methods for updating authored text bindings in a preview.</dd>
+        </dl>
+        <p>
+          Project Explorer files are stored separately from frame source. A frame script cannot
+          import those files. IntelliSense lists API members and types; enter your project’s
+          instance names, frame labels, link names, and bindings yourself.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

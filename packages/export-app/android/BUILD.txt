@@ -1,0 +1,19 @@
+Splash Animator Android project player
+
+1. Extract all files and folders into a new writable directory.
+2. Use JDK 17, Gradle 8.13, Android SDK Platform 36 and Build Tools 35.0.0.
+   Point ANDROID_HOME at the SDK, or set sdk.dir in local.properties.
+   Gradle retrieves the pinned Android plugin from Google's Maven repository.
+3. From the extracted directory run: gradle assembleDebug
+   Install build/outputs/apk/debug/splash-project-player-debug.apk on an
+   Android 8.0+ device with a current Android System WebView. Use the device
+   installer or adb install from Android SDK Platform Tools.
+4. For distribution, open this directory in Android Studio. Use Generate
+   Signed Bundle / APK with your own release/upload keystore and reserve a
+   unique application ID before publishing. Keep that key outside this kit.
+
+project-app.properties contains the application ID. The app name and launcher
+icon are under src/main/res. Each build carries the animation as local assets.
+
+Build prerequisites: https://developer.android.com/build/releases/agp-8-13-0-release-notes
+Signing: https://developer.android.com/studio/publish/app-signing

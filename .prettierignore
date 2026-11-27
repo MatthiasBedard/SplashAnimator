@@ -1,0 +1,11 @@
+node_modules
+.pnpm-store
+.npm-cache
+dist
+target
+.local-projects
+.e2e-projects
+test-results
+playwright-report
+pnpm-lock.yaml
+/.local-docs/
