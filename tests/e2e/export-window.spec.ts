@@ -109,7 +109,7 @@ test('desktop single-frame export hands encoded output to its save chooser and c
 test('HTML shortcuts open settings and the exported canvas follows the selected sizing', async ({ page }) => {
   const f = await setup(page);
   const file = page.getByRole('button', { name: 'File', exact: true });
-  const toolbar = page.getByRole('button', { name: '↗ Export HTML', exact: true });
+  const toolbar = page.getByRole('button', { name: 'Export', exact: true });
   const downloads: unknown[] = [];
   page.on('download', download => downloads.push(download));
 
@@ -528,7 +528,7 @@ test('desktop HTML chooser cancellation keeps keyboard focus and permits an exac
     scope.getByRole('button', { name: 'Export HTML animation…', exact: true });
   const requests = () => page.evaluate(() => Reflect.get(window, 'htmlExports') as { project: string; files: { path: string; text: string }[] }[]);
   const complete = (path: string | null) => page.evaluate(path => Reflect.get(window, 'completeHtmlExport')(path), path);
-  await expect(page.getByRole('button', { name: '↗ Export HTML', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
   await page.getByLabel('Drawing stage', { exact: true }).focus();
   await page.keyboard.press('F10');
   async function quickExport() {
@@ -629,7 +629,7 @@ test('File is compact and Export groups every existing format with retained sett
       .boundingBox())!;
     const file = (await nav.getByRole('button', { name: 'File', exact: true }).boundingBox())!;
     const help = (await nav.getByRole('button', { name: 'Help', exact: true }).boundingBox())!;
-    const shortcut = nav.getByRole('button', { name: '↗ Export HTML', exact: true });
+    const shortcut = nav.getByRole('button', { name: 'Export', exact: true });
     const publish = (await shortcut.boundingBox())!;
     expect(bar.y).toBe(0);
     expect(bar.height).toBe(30);

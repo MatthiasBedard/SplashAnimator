@@ -229,7 +229,7 @@ test('onion controls render before and after ghosts without changing artwork or 
   expect(
     await page.evaluate(() => JSON.parse(localStorage.getItem('splash-recovery-v1')!).project),
   ).toEqual(p);
-  const publish = page.getByRole('button', { name: /Export HTML/ });
+  const publish = page.getByRole('button', { name: 'Export', exact: true });
   if (!signed && await publish.isDisabled()) {
     await test.step.skip('Export pixel comparison requires a signed license fixture', async () => {});
     return;

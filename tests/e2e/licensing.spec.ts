@@ -15,7 +15,7 @@ test('unlicensed startup explains restrictions and lets users configure exports 
   await expect(splash.getByText('No valid license', { exact: true })).toBeVisible();
   await expect(splash.getByText('Saving and exporting disabled')).toBeVisible();
   await splash.getByRole('button', { name: 'Open editor' }).click();
-  await expect(page.getByRole('button', { name: '↗ Export HTML' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Export', exact: true })).toHaveCount(0);
   const prompt = page.getByRole('button', { name: 'Register Splash Animator', exact: true });
   await expect(prompt).toHaveCSS('background-color', 'rgb(180, 35, 50)');
   await prompt.click();

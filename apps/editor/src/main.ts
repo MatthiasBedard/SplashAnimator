@@ -1,4 +1,5 @@
 import { showSplashScreenEvent, showStartup } from './SplashScreen/display';
+import { writable, type Readable } from 'svelte/store';
 import { license } from './license.svelte';
 import { desktop } from './storage';
 import { checkDesktopUpdate, desktopUpdate } from './desktop-update';
@@ -9,7 +10,7 @@ const app = document.getElementById('app')!;
 const startup = document.getElementById('startup-screen')!;
 const splashShell = startup.cloneNode(false) as HTMLElement;
 
-function presentDesktopSplashMenu(host: HTMLElement) {
+function presentDesktopSplashMenu(host: HTMLElement, updateReady: Readable<boolean>, openUpdate: () => void) {
   host.classList.add('desktop-startup-screen');
   // The editor is inert, but the window controls are available beside the dialog.
   host.removeAttribute('aria-modal');
@@ -20,7 +21,7 @@ function presentDesktopSplashMenu(host: HTMLElement) {
   void Promise.all([import('svelte'), import('./SplashScreen/DesktopSplashMenu.svelte')])
     .then(([{ mount, unmount }, { default: Menu }]) => {
       if (!menu.isConnected) return;
-      const instance = mount(Menu, { target: menu });
+      const instance = mount(Menu, { target: menu, props: { updateReady, openUpdate } });
       dispose = () => void unmount(instance);
     })
     .catch((error) => console.error('Unable to show desktop window controls', error));
@@ -34,7 +35,12 @@ function presentDesktopSplashMenu(host: HTMLElement) {
 function presentSplash(host: HTMLElement, returnFocus: string) {
   app.inert = true;
   app.setAttribute('aria-hidden', 'true');
-  const closeMenu = desktop ? presentDesktopSplashMenu(host) : undefined;
+  const updateReady = writable(false);
+  let dismiss: (() => void) | undefined;
+  const closeMenu = desktop ? presentDesktopSplashMenu(host, updateReady, () => {
+    dismiss?.();
+    app.querySelector<HTMLButtonElement>('[data-update-available]')?.click();
+  }) : undefined;
   const splash = showStartup(host);
   const unsubscribeUpdate = desktop ? desktopUpdate.subscribe(({ installed, release }) => {
     splash.updateVersion(installed, release?.ticket ? release.latest ?? undefined : undefined);
@@ -42,7 +48,6 @@ function presentSplash(host: HTMLElement, returnFocus: string) {
   if (desktop) void checkDesktopUpdate();
   const events = new AbortController();
   const capture = { capture: true, signal: events.signal };
-  let dismiss: (() => void) | undefined;
   const containShortcut = (event: Event) => event.stopImmediatePropagation();
   window.addEventListener('keyup', containShortcut, capture);
   window.addEventListener('paste', containShortcut, capture);
@@ -68,6 +73,7 @@ function presentSplash(host: HTMLElement, returnFocus: string) {
         app.querySelector<HTMLElement>(returnFocus)?.focus({ preventScroll: true });
       };
       splash.ready(dismiss, license.claims);
+      updateReady.set(true);
     },
     failed() {
       unsubscribeUpdate?.();

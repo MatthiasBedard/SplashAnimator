@@ -2,7 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 
 export async function openHtmlShortcut(
   page: Page,
-  shortcut: Locator = page.getByRole('button', { name: '↗ Export HTML', exact: true }),
+  shortcut: Locator = page.getByRole('button', { name: 'Export', exact: true }),
 ) {
   await shortcut.click();
   const dialog = page.getByRole('dialog', { name: 'Export', exact: true });

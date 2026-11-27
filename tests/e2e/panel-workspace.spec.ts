@@ -167,7 +167,7 @@ test('component styles keep header controls compact and canvases interactive', a
   await page.addInitScript(project => localStorage.setItem('splash-recovery-v1', JSON.stringify({ project, folder: null, manifest: null })), project);
   await page.goto('/');
   const recovery = page.getByRole('button', { name: 'Recover changes', exact: true });
-  const publish = page.getByRole('button', { name: /Export HTML/ });
+  const publish = page.getByRole('button', { name: 'Export', exact: true });
   await expect(recovery).toBeVisible();
   const header = (await page.locator('.menubar').boundingBox())!;
   const exportBox = (await publish.boundingBox())!;

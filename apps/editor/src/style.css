@@ -125,6 +125,18 @@ kbd {
 .primary-button:hover {
   background: var(--brand-hover);
 }
+.menubar .update-available {
+  flex-shrink: 0;
+  margin-right: 6px;
+  padding: 3px 8px;
+  border-color: #a6420a;
+  background: #a6420a;
+  color: #fff;
+  font-weight: 650;
+}
+.menubar .update-available:hover:enabled {
+  background: #893609;
+}
 .menubar {
   height: var(--application-menu-height, 30px);
   min-height: var(--application-menu-height, 30px);

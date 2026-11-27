@@ -78,22 +78,36 @@ test('launch stays usable during the desktop check and Help shares that check be
   await expect.poll(() => commands(page)).toEqual(['desktop_update_check', 'desktop_update_download', 'desktop_update_install']);
 });
 
-test('desktop splash shows the returned latest version beside the installed version', async ({ page }) => {
+test('the splash and editor headers offer a detected desktop update', async ({ page }) => {
   await mockUpdater(page);
   await page.goto('/');
   await expect.poll(() => commands(page)).toEqual(['desktop_update_check']);
   await expect(page.getByRole('button', { name: 'Open editor', exact: true })).toBeEnabled();
+  const updateButton = page.getByRole('button', { name: 'Update Available', exact: true });
+  await expect(updateButton).toHaveCount(0);
   await page.evaluate(() => Reflect.get(window, 'completeFirstCheck')());
   const label = page.locator('#startup-screen').locator('#version');
   await expect(label).toHaveText('v1.2.0 · Latest v1.3.0');
   await expect(notice(page)).toBeVisible();
   expect(await notice(page).evaluate(node => node.parentElement?.id)).toBe('version');
+  await expect(updateButton).toBeEnabled();
+  const nextAction = await updateButton.evaluate(button => button.nextElementSibling?.classList.contains('publish'));
+  expect(nextAction).toBe(true);
+  await updateButton.click();
+  const dialog = page.getByRole('dialog', { name: 'Splash Animator Update' });
+  await expect(page.locator('#startup-screen')).toHaveCount(0);
+  await expect(dialog.getByTestId('latest-version')).toHaveText('1.3.0');
+  await dialog.getByRole('button', { name: 'Close Update' }).click();
+  await expect(updateButton).toBeFocused();
+  await updateButton.click();
+  await expect(dialog.getByRole('button', { name: 'Download and install' })).toBeVisible();
 });
 
 test('browser startup and Help have no desktop updater', async ({ page }) => {
   await page.goto('/');
   await expect(notice(page)).toHaveCount(0);
   await openEditor(page);
+  await expect(page.getByRole('button', { name: 'Update Available', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Help', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Update…', exact: true })).toHaveCount(0);
 });
@@ -102,6 +116,7 @@ test('unconfigured desktop keeps installed version visible and offers no install
   await mockUpdater(page, 'unconfigured');
   await page.goto('/');
   await openEditor(page);
+  await expect(page.getByRole('button', { name: 'Update Available', exact: true })).toHaveCount(0);
   const dialog = await openUpdate(page);
   await expect(dialog.getByTestId('installed-version')).toHaveText('1.2.0');
   await expect(dialog.getByTestId('latest-version')).toHaveText('—');
@@ -115,6 +130,7 @@ test('current desktop release displays the feed version without offering an inst
   await mockUpdater(page, 'current');
   await page.goto('/');
   await openEditor(page);
+  await expect(page.getByRole('button', { name: 'Update Available', exact: true })).toHaveCount(0);
   const dialog = await openUpdate(page);
   await expect(dialog.getByTestId('latest-version')).toHaveText('1.2.0');
   await expect(dialog.getByRole('status')).toHaveText('No newer release is available.');

@@ -10,6 +10,7 @@
   import RegisterDialog from './RegisterDialog.svelte';
   import PluginPreferences from './PluginPreferences.svelte';
   import ThemePreferences from './ThemePreferences.svelte';
+  import { desktopUpdate } from './desktop-update';
   import PluginsDialog from './PluginsDialog.svelte';
   import UpdateDialog from './UpdateDialog.svelte';
   import ProjectFileDialog from './ProjectFileDialog.svelte';
@@ -2271,6 +2272,12 @@
   }
   let registerFromToolbar = false;
   let registerFromExport = false;
+  let updateFromToolbar = false;
+  function openUpdate(fromToolbar = false) {
+    menu = '';
+    updateFromToolbar = fromToolbar;
+    helpDialog = 'update';
+  }
   function closeHelpDialog() {
     if (registerFromExport) {
       registerFromExport = false;
@@ -2284,10 +2291,12 @@
       return;
     }
     const origin = helpDialog === 'plugins' ? '[data-workspace-menu]' :
-      registerFromToolbar ? '.menubar .publish' : '[data-help-menu]';
+      registerFromToolbar ? '.menubar .publish' :
+      updateFromToolbar ? '[data-update-available]' : '[data-help-menu]';
     helpDialog = null;
-    document.querySelector<HTMLButtonElement>(origin)?.focus();
+    (document.querySelector<HTMLButtonElement>(origin) ?? applicationMenuTrigger('Help'))?.focus();
     registerFromToolbar = false;
+    updateFromToolbar = false;
   }
   $effect(()=>{if(modal!=='audioImport')libraryAudioFile=undefined;});
   let recovery = $state<EditorRecovery | null>(null);
@@ -15802,7 +15811,7 @@
               <button onclick={() => { menu = ''; helpDialog = 'about'; }}>About</button>
               <button onclick={() => { menu = ''; helpDialog = 'register'; }}>Register…</button>
               {#if desktop}
-                <button onclick={() => { menu = ''; helpDialog = 'update'; }}>Update…</button>
+                <button onclick={() => openUpdate()}>Update…</button>
               {/if}
               <button onclick={() => {
                 menu = '';
@@ -15818,8 +15827,12 @@
           </div>{/if}
       </div>{/each}
     {#if desktop}<div class="menu-drag-region" data-tauri-drag-region aria-hidden="true"></div>{/if}
+    {#if desktop && $desktopUpdate.release?.ticket}
+      <button type="button" class="update-available" data-update-available
+        inert={!!symbolEditing?.workspace} onclick={() => openUpdate(true)}>Update Available</button>
+    {/if}
     {#if license.claims}
-      <button class="publish" inert={desktop && !!symbolEditing?.workspace} disabled={!license.savingAllowed || foregroundBusy || preview || !!penDraft || !!scopedSymbol} aria-disabled={pendingDrawingJobs || undefined} onclick={()=>openExport('html')}>↗ Export HTML</button>
+      <button class="publish" inert={desktop && !!symbolEditing?.workspace} disabled={!license.savingAllowed || foregroundBusy || preview || !!penDraft || !!scopedSymbol} aria-disabled={pendingDrawingJobs || undefined} onclick={()=>openExport('html')}><span aria-hidden="true">↗</span> Export</button>
     {:else}
       <button class="publish register-prompt" inert={desktop && !!symbolEditing?.workspace} onclick={() => { menu = ''; registerFromToolbar = true; helpDialog = 'register'; }}>Register Splash Animator</button>
     {/if}

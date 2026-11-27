@@ -35,6 +35,7 @@ export default defineConfig({
     'touch-preferences.spec.ts',
     'web-themes.spec.ts',
     'desktop-plugins.spec.ts',
+    'desktop-update.spec.ts',
     'layer-outlines.spec.ts',
     'pencil-smoothing.spec.ts',
     'pencil-merge.spec.ts',
