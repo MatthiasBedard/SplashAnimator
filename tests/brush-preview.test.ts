@@ -498,20 +498,21 @@ test('nonlinear fixed nib emits its first closed part without building all respo
   expect([...(first.value ?? []), ...[...cursor].flat()]).toEqual(expected);
 });
 
-// Captured from committed 79d61f4b drawing.ts before streaming refactor.
+// Reference geometry captured before the streaming refactor. Quantize the
+// reference coordinates to 1e-8 because transcendental math can vary by runtime.
 test.each([
-  [0.25, false, 'd47cd8ba60ad8dc492214877ad3975bd61c8c2f862cd20c5c849c388b48aa72d'],
-  [0.25, true, '9d8b98c116370c551ca6cabac2ee9bb29b520192074610a123fe061279efb8dd'],
-  [0.5, false, '4754914ee4c89ce1590a73b6803461b2d46994f65bfa775cb79c847fee002b84'],
-  [0.5, true, 'de530eccf95f9eec5aed3e3cf94729586310491e4623f104a40da9a34b9c2664'],
-  [1, false, 'd53a0cb7ea1a8e8dbfb825e66ef8abbf38b6d5fbc6409704bb63ad5a6455a93e'],
-  [1, true, '2c9bc00ba90786528384b67a1debcaa1a9e26602c68da203b3de3a9df6ebe672'],
-  [2, false, 'ba1c6684df62e385a81e091fa6f5247a98bdf6fb834b3586e8c9913ffc73f48d'],
-  [2, true, 'aea63a8df06a186da77713017a0771bf4b33eca553b2e911fe159c481fd24fc7'],
-  [4, false, '4b754f338fe29ab8a912bfab56d3d7771543300c75dc8538b59a87e7f5b73139'],
-  [4, true, '54d6203ca6072bb5fe6a6e458fd82724039ff3ecd70d79532aa88b77c61d8405'],
+  [0.25, false, '89274ae5e1c238cc060aec7c843942af5b9076de5fcbbe201225d1b6fd881647'],
+  [0.25, true, 'bf9908b85c10189191ef5e0601a21fa513a03b2b703ffb6c17b3d7b107f81570'],
+  [0.5, false, '0c4c8c9e1788b3da50b06b9019bfaf07efb184caa70260d9781f473f3a31aacc'],
+  [0.5, true, '309f858fe9e35ae5bc2dc8cf8ee5d75a922629708f7a1c9b560ce35030ce7cec'],
+  [1, false, '02b7b07f7b6920f14f552c8be95b65da8d154ad9e80cb861e3cbb4294b8f2cf8'],
+  [1, true, 'e10f2ee513fe7eeb8ca0e3bff832f83921bc6bc959a7ccec661fe703b3787382'],
+  [2, false, '1b25baa58cc288bf3872fa484be31802ffd79461694ae366518d54c7069103d0'],
+  [2, true, '2e40d0434a97d1be5b256f5d6bc9aa809139c4f3bd7fdaa0aed385f9a9935819'],
+  [4, false, '2fcf369349d040a6806c9267b83349006033e02599bbdc4e1f1519417847d8cd'],
+  [4, true, '1c52b809bbc015108c00fb37370c5a631d9618246189c307091973e0450230da'],
 ] as const)(
-  'fixed nib command bytes remain exact for response %s/reverse %s',
+  'fixed nib geometry matches the reference for response %s/reverse %s',
   (response, reverse, hash) => {
     const s: Vector = {
       id: 'oracle',
@@ -534,11 +535,11 @@ test.each([
       brush: { pressure: true, minimum: 0.1, response, aspect: 0.2, angle: 35, tilt: false },
     };
     if (reverse) s.points.reverse();
-    expect(
-      createHash('sha256')
-        .update(JSON.stringify(pathCommands(s)))
-        .digest('hex'),
-    ).toBe(hash);
-    expect([...brushPreviewParts(s)].flat()).toEqual(pathCommands(s));
+    const commands = pathCommands(s);
+    const quantized = JSON.stringify(commands, (_, value: unknown) =>
+      typeof value === 'number' ? Math.round(value * 1e8) : value,
+    );
+    expect(createHash('sha256').update(quantized).digest('hex')).toBe(hash);
+    expect([...brushPreviewParts(s)].flat()).toEqual(commands);
   },
 );

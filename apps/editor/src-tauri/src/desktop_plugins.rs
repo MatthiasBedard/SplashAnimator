@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn discovers_supported_manifests_without_loading_payloads() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         package(root.path(), "valid", VALID);
         fs::write(root.path().join("valid").join("plugin.js"), "throw Error()").unwrap();
         package(
@@ -270,7 +270,7 @@ mod tests {
 
     #[test]
     fn reports_duplicate_ids_without_picking_a_winner() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         package(root.path(), "first", VALID);
         package(root.path(), "second", VALID);
         let catalog = scan(root.path());
@@ -280,7 +280,7 @@ mod tests {
 
     #[test]
     fn a_missing_folder_is_empty_and_default_is_absolute() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         assert!(scan(&root.path().join("absent")).issues.is_empty());
         let default = default_folder().unwrap();
         assert!(default.is_absolute());
@@ -289,7 +289,7 @@ mod tests {
 
     #[test]
     fn rejects_a_non_directory_root_and_enforces_scan_bounds() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         for index in 0..MAX_DIRECTORY_ENTRIES {
             fs::write(root.path().join(index.to_string()), "").unwrap();
         }

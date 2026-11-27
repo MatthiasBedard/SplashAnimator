@@ -1235,7 +1235,7 @@ mod tests {
     use super::*;
 
     fn fixture() -> (TempDir, Job) {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         let input = root.path().join("input");
         fs::create_dir(&input).unwrap();
         let manifest = input.join("ffmpeg.json");
@@ -1482,7 +1482,7 @@ mod tests {
         let (_root, mut job) = fixture();
         job.format = OutputFormat::QuickTime;
         job.destination.set_extension("mov");
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         let path = stage.path().join(OUTPUT);
         let atom = |kind: &[u8; 4], body: &[u8]| {
             let mut bytes = (8 + body.len() as u32).to_be_bytes().to_vec();
@@ -1676,7 +1676,7 @@ mod tests {
             for index in [3, 4] {
                 fs::write(job.input.join(format!("frame-{index:06}.png")), png()).unwrap();
             }
-            let stage = tempfile::tempdir().unwrap();
+            let stage = crate::test_tempdir().unwrap();
             stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).unwrap();
             assert_eq!(fs::read(stage.path().join(AUDIO_FILE)).unwrap(), bytes);
             let command = encoder_command(&job, stage.path());
@@ -1712,7 +1712,7 @@ mod tests {
             fs::write(job.input.join(format!("frame-{index:06}.png")), png()).unwrap();
         }
         let reject = || {
-            let stage = tempfile::tempdir().unwrap();
+            let stage = crate::test_tempdir().unwrap();
             stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).unwrap_err()
         };
         assert!(!reject().is_empty());
@@ -1787,17 +1787,17 @@ mod tests {
         let (_root, job) = fixture();
         let bytes = png();
         fs::write(job.input.join("frame-000003.png"), &bytes).unwrap();
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         assert!(stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).is_err());
         fs::write(
             job.input.join("frame-000004.png"),
             &bytes[..bytes.len() - 1],
         )
         .unwrap();
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         assert!(stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).is_err());
         fs::write(job.input.join("frame-000004.png"), &bytes).unwrap();
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).unwrap();
         assert_eq!(
             fs::read(stage.path().join("frame-000003.png")).unwrap(),
@@ -1807,7 +1807,7 @@ mod tests {
             fs::read(stage.path().join("frame-000004.png")).unwrap(),
             bytes
         );
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         job.cancel.store(true, Ordering::Relaxed);
         assert!(stage_frames(&job, stage.path(), Instant::now() + TIME_LIMIT).is_err());
         assert_eq!(fs::read_dir(stage.path()).unwrap().count(), 0);
@@ -1871,7 +1871,7 @@ mod tests {
     #[test]
     fn publishes_complete_bytes_and_preserves_destination_collisions() {
         let (_root, mut job) = fixture();
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         let output = [0x1a, 0x45, 0xdf, 0xa3, 0x00];
         fs::write(stage.path().join(OUTPUT), output).unwrap();
         let destination = job.destination.clone();
@@ -1881,7 +1881,7 @@ mod tests {
 
         let (_root, mut job) = fixture();
         fs::write(&job.destination, b"original file").unwrap();
-        let stage = tempfile::tempdir().unwrap();
+        let stage = crate::test_tempdir().unwrap();
         fs::write(stage.path().join(OUTPUT), output).unwrap();
         let stage_path = stage.path().to_owned();
         let destination = job.destination.clone();

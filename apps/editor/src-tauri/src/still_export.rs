@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn writes_binary_bytes_and_preserves_an_unconfirmed_destination() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         let selection = root.path().join("art");
         let file = save(&selection, "tiff", "AAEC/w==").unwrap();
         assert_eq!(file, selection.with_extension("tiff"));

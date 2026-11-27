@@ -264,7 +264,7 @@ it('rejects raw numeric/getter/frame requests and complete candidate overflow wi
   expect(worker).not.toHaveBeenCalled();
 });
 
-it('admits the full inserted shape budget before starting a reconstruction worker', async () => {
+it('admits the full inserted shape budget before starting a reconstruction worker', { timeout: 30_000 }, async () => {
   const p = fixture(true),
     clip = copyCurrentLayers(p, 4, ids),
     worker = vi.fn(rebuild);

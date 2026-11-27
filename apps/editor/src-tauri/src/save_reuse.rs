@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn reused_asset_waits_for_directory_sync_before_manifest_replacement() {
-        let container = tempfile::tempdir().unwrap();
+        let container = crate::test_tempdir().unwrap();
         let root = container.path().join("project.spl");
         fs::create_dir(&root).unwrap();
         let asset = root.join("assets/bitmaps/item.json");

@@ -164,7 +164,7 @@ mod tests {
 
     #[test]
     fn component_publication_preserves_existing_data_and_retries_after_rejection() {
-        let container = tempfile::tempdir().unwrap();
+        let container = crate::test_tempdir().unwrap();
         let root = container.path().join("first.spl");
         fs::create_dir(&root).unwrap();
         let target = root.join("assets/bitmaps/new.json");
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn component_publication_preserves_a_replacement_directory() {
-        let container = tempfile::tempdir().unwrap();
+        let container = crate::test_tempdir().unwrap();
         let root = container.path().join("first.spl");
         fs::create_dir(&root).unwrap();
         let parent = root.join("vectors");

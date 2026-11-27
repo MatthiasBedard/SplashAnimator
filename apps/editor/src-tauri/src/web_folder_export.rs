@@ -155,7 +155,7 @@ mod tests {
 
     #[test]
     fn publishes_files_and_preserves_an_existing_export() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = crate::test_tempdir().unwrap();
         let entries = [
             entry(INDEX, "<canvas></canvas>"),
             entry(PLAYER, "const ready = true;"),
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn rejects_invalid_paths_and_cleans_up_failed_writes() {
-        let parent = tempfile::tempdir().unwrap();
+        let parent = crate::test_tempdir().unwrap();
         let mut entries = [
             entry(INDEX, "<canvas></canvas>"),
             entry(PLAYER, "const ready = true;"),

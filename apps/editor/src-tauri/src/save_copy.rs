@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn copy_waits_for_every_component_and_preserves_an_interrupted_source() {
-        let container = tempfile::tempdir().unwrap();
+        let container = crate::test_tempdir().unwrap();
         let source = container.path().join("source.spl");
         fs::create_dir_all(source.join("artwork/empty")).unwrap();
         fs::write(source.join(MANIFEST), "original manifest").unwrap();
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn copy_preserves_a_destination_collision_and_refuses_a_nested_target() {
-        let container = tempfile::tempdir().unwrap();
+        let container = crate::test_tempdir().unwrap();
         let source = container.path().join("source.spl");
         let target = container.path().join("copy.spl");
         fs::create_dir(&source).unwrap();

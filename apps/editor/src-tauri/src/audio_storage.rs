@@ -188,7 +188,7 @@ mod tests {
 
     #[test]
     fn round_trips_owned_bytes_and_preserves_existing_assets() {
-        let root = tempfile::tempdir().unwrap();
+        let root = crate::test_tempdir().unwrap();
         let name = "assets/audio/track_1.wav";
         assert!(write_audio(root.path(), name, WAV_HEADER, || Ok(())).is_err());
         fs::write(root.path().join("project.json"), "{}").unwrap();

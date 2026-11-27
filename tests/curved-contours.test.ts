@@ -445,7 +445,7 @@ for (const origin of [0, -99900, 99900])
       const source: Vector = { ...shape(), x: origin, y: origin, fillRule, contours };
       const before = clone(source);
       const polygons = vectorPolygons(source);
-      const merged = mergeVectors([source]).flatMap(vectorPolygons);
+      const merged = mergeVectors([source]).flatMap((shape) => vectorPolygons(shape));
       for (let iy = 0; iy < 21; iy++)
         for (let ix = 0; ix < 27; ix++) {
           const p = { x: -45 + ix * 4.13, y: -43 + iy * 4.19 };

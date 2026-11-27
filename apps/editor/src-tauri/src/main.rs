@@ -21,6 +21,13 @@ mod save_reuse;
 #[cfg(feature = "native-smoke")]
 mod native_smoke;
 
+#[cfg(test)]
+fn test_tempdir() -> std::io::Result<tempfile::TempDir> {
+    // macOS exposes its temporary directory through a system symlink.
+    // Use the physical location so production path guards stay active in tests.
+    tempfile::tempdir_in(std::env::temp_dir().canonicalize()?)
+}
+
 #[derive(Default)]
 struct Projects(Mutex<HashMap<PathBuf, Arc<DirectoryIdentity>>>);
 
@@ -592,7 +599,7 @@ mod tests {
     }
     #[test]
     fn saves_and_reopens_using_the_registered_folder_path() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let folder = temp.path().join("My Animation.spl");
         fs::create_dir(&folder).unwrap();
         let projects = Projects::default();
@@ -610,10 +617,10 @@ mod tests {
         assert_eq!(read(&relative(&reopened, "scenes/first.json").unwrap()).unwrap(), "{}");
         assert_eq!(read(&relative(&reopened, ".splash/autosaves/latest.json").unwrap()).unwrap(), "{}");
     }
-    #[test] fn rejects_traversal() { let temp = tempfile::tempdir().unwrap(); for p in ["../secret", "/etc/passwd", "a/../b", "C:/data", "a\\b", "a//b"] { assert!(relative(temp.path(), p).is_err()); } }
+    #[test] fn rejects_traversal() { let temp = crate::test_tempdir().unwrap(); for p in ["../secret", "/etc/passwd", "a/../b", "C:/data", "a\\b", "a//b"] { assert!(relative(temp.path(), p).is_err()); } }
     #[test]
     fn project_scripts_roundtrip_and_detect_conflicts() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let file = "scripts/actors/player.ts";
         commit(root, file, "first", None).unwrap();
@@ -627,7 +634,7 @@ mod tests {
     }
     #[test]
     fn native_save_rechecks_manifest_after_staging() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let file = root.join("project.json");
         let unrelated = root.join("original-artwork.txt");
@@ -656,7 +663,7 @@ mod tests {
 
     #[test]
     fn keeps_the_registered_native_folder_identity() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let folder = temp.path().join("original.spl");
         let parked = temp.path().join("parked.spl");
         fs::create_dir(&folder).unwrap();
@@ -690,7 +697,7 @@ mod tests {
 
     #[test]
     fn native_save_does_not_clean_files_in_a_replacement_folder() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path().join("artwork.spl");
         let parked = temp.path().join("original.spl");
         fs::create_dir(&root).unwrap();
@@ -743,7 +750,7 @@ mod tests {
             }
         }
 
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let manifest = root.join("project.json");
         let lock = root.join("project.json.lock");
@@ -781,7 +788,7 @@ mod tests {
 
     #[test]
     fn native_save_preserves_an_unrecognized_legacy_lock() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let lock = root.join("project.json.lock");
         commit(root, "project.json", "baseline", None).unwrap();
@@ -799,7 +806,7 @@ mod tests {
     fn native_save_preserves_manifest_during_real_windows_sharing_failure() {
         use std::os::windows::fs::OpenOptionsExt;
 
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let manifest = root.join("project.json");
         commit(root, "project.json", "baseline", None).unwrap();
@@ -818,7 +825,7 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn native_save_reports_read_only_lock_access() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let lock = root.join("project.json.lock");
         let manifest = root.join("project.json");
@@ -841,7 +848,7 @@ mod tests {
 
     #[test]
     fn native_save_preserves_a_replaced_nested_autosave_directory() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let target = ".splash/autosaves/latest.json";
         let parked = root.join("parked");
@@ -880,7 +887,7 @@ mod tests {
     #[test]
     fn native_save_cannot_publish_or_delete_a_replacement_stage_or_lock() {
         for replace_lock in [false, true] {
-            let temp = tempfile::tempdir().unwrap();
+            let temp = crate::test_tempdir().unwrap();
             let root = temp.path();
             let target = "project.json";
             commit(root, target, "baseline", None).unwrap();
@@ -919,7 +926,7 @@ mod tests {
 
     #[test]
     fn native_save_receipt_survives_a_failed_flush_after_publication() {
-        let temp = tempfile::tempdir().unwrap();
+        let temp = crate::test_tempdir().unwrap();
         let root = temp.path();
         let file = root.join("project.json");
         commit(root, "project.json", "baseline", None).unwrap();
@@ -936,5 +943,5 @@ mod tests {
         assert_eq!(read(&file).unwrap(), "retried");
     }
 
-    #[test] fn commit_checks_conflicts() { let temp = tempfile::tempdir().unwrap(); commit(temp.path(), "project.json", "one", None).unwrap(); assert!(commit(temp.path(), "project.json", "two", None).is_err()); assert_eq!(read(&temp.path().join("project.json")).unwrap(), "one"); commit(temp.path(), "project.json", "two", Some("one")).unwrap(); assert_eq!(read(&temp.path().join("project.json")).unwrap(), "two"); }
+    #[test] fn commit_checks_conflicts() { let temp = crate::test_tempdir().unwrap(); commit(temp.path(), "project.json", "one", None).unwrap(); assert!(commit(temp.path(), "project.json", "two", None).is_err()); assert_eq!(read(&temp.path().join("project.json")).unwrap(), "one"); commit(temp.path(), "project.json", "two", Some("one")).unwrap(); assert_eq!(read(&temp.path().join("project.json")).unwrap(), "two"); }
 }
