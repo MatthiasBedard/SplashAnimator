@@ -163,7 +163,7 @@
 {/each}</ul>
 
 <style>
-  .code-editor{height:320px;min-width:0;border:1px solid #52586a;margin-top:8px;}
+  .code-editor{height:320px;min-width:0;border:1px solid var(--script-panel-border, #52586a);margin-top:8px;}
   .actions{display:flex;gap:8px;margin-top:10px;}
   .save-feedback{font-size:12px;margin:6px 0 0;}
   .save-feedback:empty{margin:0;}

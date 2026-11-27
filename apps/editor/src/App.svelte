@@ -9,6 +9,7 @@
   import { applySymbolEffectPatch } from '../../../packages/document/src/symbol-effects';
   import RegisterDialog from './RegisterDialog.svelte';
   import PluginPreferences from './PluginPreferences.svelte';
+  import ThemePreferences from './ThemePreferences.svelte';
   import PluginsDialog from './PluginsDialog.svelte';
   import UpdateDialog from './UpdateDialog.svelte';
   import ProjectFileDialog from './ProjectFileDialog.svelte';
@@ -1479,6 +1480,7 @@
   import CanvasResizeOverlay, { type CanvasResizeBounds } from './CanvasResizeOverlay.svelte';
   import TimelineLayerControls from './TimelineLayerControls.svelte';
   import {paintTimeline} from './timeline-paint';
+  import { canvasTheme } from './canvas-theme';
   import {DEFAULT_FRAME_WIDTH} from './timeline-zoom';
   import LiveShapeHints from './LiveShapeHints.svelte';
   import TimelineTween from './TimelineTween.svelte';
@@ -14847,10 +14849,11 @@
     }
     ctx.restore();
     if (rulersVisible) {
-      ctx.fillStyle = '#2d3038';
+      const { stageRulerBackground, stageRulerText } = canvasTheme();
+      ctx.fillStyle = stageRulerBackground;
       ctx.fillRect(0, 0, viewWidth, STAGE_RULER_HEIGHT);
       ctx.fillRect(0, 0, STAGE_RULER_WIDTH, viewHeight);
-      ctx.fillStyle = '#a0a4b0';
+      ctx.fillStyle = stageRulerText;
       ctx.font = '9px monospace';
       const extent = { x: displayedCanvasSize.width, y: displayedCanvasSize.height };
       if (viewRotation !== 0) {
@@ -14919,6 +14922,7 @@
     void onion;
     void grid;
     void rulersVisible;
+    void canvasTheme();
     void snapLines;
     void viewWidth;
     void viewHeight;
@@ -15387,8 +15391,9 @@
 {/if}
 {#if shortcutsOpen}<ShortcutEditor bindings={shortcutOverrides} mac={macShortcuts} change={updateShortcuts} onclose={closeShortcuts} />{/if}
 {#if modal === 'preferences'}
-  <PreferencesWindow close={closePreferences} showPlugins={desktop}>
+  <PreferencesWindow close={closePreferences} {desktop}>
     {#snippet plugins()}<PluginPreferences />{/snippet}
+    {#snippet themes()}<ThemePreferences />{/snippet}
     {#snippet general()}
       <div class="preference-fields">
         <label>Zoom with the mouse wheel <input type="checkbox" bind:checked={wheelZoomByDefault} /></label>

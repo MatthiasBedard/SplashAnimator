@@ -3,6 +3,7 @@ import { type FrameComment, type FrameLabel, type Layer } from '../../../package
 import { timelineHeldKey, timelineTweenCell, tweenCellKind } from './timeline-tween-cell';
 import { DEFAULT_FRAME_WIDTH } from './timeline-zoom';
 import { displayPixelRatio } from './display-pixel-ratio';
+import { canvasTheme } from './canvas-theme';
 const forcedColorsQuery = '(forced-colors: active)';
 const subscribeForcedColors = createSubscriber(update => {
   const media = window.matchMedia(forcedColorsQuery);
@@ -66,6 +67,7 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
     dpr = displayPixelRatio();
   subscribeForcedColors();
   const forcedColors = window.matchMedia(forcedColorsQuery).matches;
+  const colors = canvasTheme();
   c.width = Math.round(width * dpr);
   c.height = Math.round(height * dpr);
   const ctx = c.getContext('2d')!;
@@ -77,7 +79,7 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
   const artworkRow = layers.findIndex(layer => !layer.folderRowId);
   const numberBaseline = frameLabels?.length ? 13 : 16;
   const paintComment = (x: number, current = false) => {
-    ctx.fillStyle = forcedColors && current ? 'HighlightText' : '#70d9ef';
+    ctx.fillStyle = forcedColors && current ? 'HighlightText' : colors.timelineComment;
     ctx.fillRect(x + 2, 2, Math.min(10, cellWidth - 3), 3);
   };
   const inset = (value: number) => value * cellWidth / DEFAULT_FRAME_WIDTH;
@@ -87,9 +89,9 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
   for (let i = 0; i < count; i++) {
     const f = i + frameStart,
       x = i * cellWidth;
-    ctx.fillStyle = '#282b33';
+    ctx.fillStyle = colors.timelineRulerBackground;
     ctx.fillRect(x, 0, cellWidth, 25);
-    ctx.fillStyle = '#999eac';
+    ctx.fillStyle = colors.timelineRulerText;
     if (f === 0 || (f + 1) % 5 === 0) ctx.fillText(String(f + 1), x + 2, numberBaseline);
     if (commented.has(f)) paintComment(x);
     layers.forEach((l, row) => {
@@ -99,7 +101,7 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
       const openMotion = held?.shapes.length && held.openMotionTween;
       ctx.fillStyle =
         f >= duration
-          ? '#22252b'
+          ? colors.timelineOutside
           : tween
             ? tweenCellKind(tween) === 'shape'
               ? '#4ade80'
@@ -108,11 +110,11 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
               ? '#60a5fa'
             : l.id === layerId
               ? f % 5 === 4
-                ? '#324862'
-                : '#29394e'
+                ? colors.timelineActiveFifth
+                : colors.timelineActiveRow
               : f % 5 === 4
-                ? '#383c46'
-                : '#30343d';
+                ? colors.timelineFifth
+                : colors.timelineRow;
       ctx.fillRect(x, y, cellWidth - 1, 27);
       if (
         !l.folderRowId &&
@@ -122,10 +124,10 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
         f <= end
       ) {
         if (tween || openMotion) {
-          ctx.strokeStyle = '#deedff';
+          ctx.strokeStyle = colors.timelineOutline;
           ctx.strokeRect(x + 0.5, y + 0.5, cellWidth - 2, 26);
         } else {
-          ctx.fillStyle = '#3d6089';
+          ctx.fillStyle = colors.timelineSelection;
           ctx.fillRect(x, y, cellWidth - 1, 27);
         }
       }
@@ -143,20 +145,20 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
         ctx.fillRect(x, y, cellWidth - 1, 27);
       }
       if (timelineContextCell?.layerId === l.id && timelineContextCell.frame === f) {
-        ctx.strokeStyle = '#deedff';
+        ctx.strokeStyle = colors.timelineOutline;
         ctx.strokeRect(x + 0.5, y + 0.5, cellWidth - 2, 26);
       }
       if (f < duration && !l.folderRowId) {
         const generated = hideGeneratedKeyMarkers && tween && 'autoRefresh' in tween &&
           tween.autoRefresh && tween.start < f && f < tween.end;
         const key = held?.frame === f && !generated ? held : undefined;
-        ctx.fillStyle = tween || openMotion ? '#000000' : l.visible ? '#bbc0ce' : '#747885';
+        ctx.fillStyle = tween || openMotion ? '#000000' : l.visible ? colors.timelineKey : colors.timelineHiddenKey;
         if (key) {
           ctx.beginPath();
           ctx.arc(x + inset(8), y + 17, 3, 0, Math.PI * 2);
           if (key.shapes.length) ctx.fill();
           else {
-            ctx.strokeStyle = '#adb2c0';
+            ctx.strokeStyle = colors.timelineEmptyKey;
             ctx.stroke();
           }
         } else if (!tween && held?.shapes.length) ctx.fillRect(x + inset(4), y + 19, inset(10), 1);
@@ -204,8 +206,8 @@ export function paintTimeline(canvas: HTMLCanvasElement, model: TimelinePaint) {
     const labelLayer = layers[artworkRow];
     const keys = labelLayer?.keys ?? [];
     let keyIndex = 0;
-    ctx.fillStyle = '#ffd277';
-    ctx.strokeStyle = '#282b33';
+    ctx.fillStyle = colors.timelineLabel;
+    ctx.strokeStyle = colors.timelineRulerBackground;
     ctx.lineWidth = 2;
     for (const [index, label] of frameLabels.entries()) {
       const left = (label.frame - frameStart) * cellWidth;

@@ -128,8 +128,8 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    background: #252830;
-    color: #e3e8ef;
+    background: var(--script-panel-background, #252830);
+    color: var(--script-panel-text, #e3e8ef);
   }
   .close-error { padding: 4px 8px; }
   .close-error p { margin: 0 0 4px; }
@@ -138,7 +138,7 @@
     align-items: center;
     gap: 8px;
     flex: none;
-    border-bottom: 1px solid #424750;
+    border-bottom: 1px solid var(--script-panel-border, #424750);
     padding: 3px 8px;
   }
   header h2 {
@@ -160,7 +160,7 @@
   .window-error {
     margin: 0;
     padding: 5px 8px;
-    color: #f2c88b;
+    color: var(--script-warning-text, #f2c88b);
     overflow-wrap: anywhere;
   }
   .script-panel-body {

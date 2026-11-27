@@ -6,6 +6,7 @@ use tauri::Manager;
 
 mod audio_storage;
 mod desktop_plugins;
+mod desktop_themes;
 mod desktop_update;
 mod font_catalog;
 mod web_folder_export;
@@ -547,8 +548,11 @@ async fn documentation_window(window: tauri::WebviewWindow) -> Result<()> {
 }
 
 fn main() {
+    desktop_plugins::prepare_default_folder();
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(desktop_themes::DesktopTheme::default())
+        .register_asynchronous_uri_scheme_protocol("splash-theme", desktop_themes::serve)
         .manage(desktop_update::DesktopUpdates::default());
     #[cfg(feature = "native-smoke")]
     let builder = native_smoke::attach(builder);
@@ -580,7 +584,7 @@ fn main() {
                 if label.starts_with("script-panel-") || label == "documentation" { let _ = panel.close(); }
             }
         }
-    }).manage(Projects::default()).manage(native_ffmpeg::FFmpeg::default()).invoke_handler(tauri::generate_handler![script_panel_window, documentation_window, project_operation, audio_storage::project_audio_read, audio_storage::project_audio_write, font_catalog::installed_font_families, read_license, write_license, desktop_plugins::desktop_plugins_discover, desktop_plugins::desktop_plugins_choose_folder, desktop_update::desktop_update_check, desktop_update::desktop_update_download, desktop_update::desktop_update_install, native_ffmpeg::ffmpeg_choose, native_ffmpeg::ffmpeg_choose_capture, native_ffmpeg::ffmpeg_push_frame, native_ffmpeg::ffmpeg_push_audio, native_ffmpeg::ffmpeg_encode, native_ffmpeg::ffmpeg_publish, native_ffmpeg::ffmpeg_cancel]).run(tauri::generate_context!()).expect("Unable to start Splash Animator");
+    }).manage(Projects::default()).manage(native_ffmpeg::FFmpeg::default()).invoke_handler(tauri::generate_handler![script_panel_window, documentation_window, project_operation, audio_storage::project_audio_read, audio_storage::project_audio_write, font_catalog::installed_font_families, read_license, write_license, desktop_plugins::desktop_plugins_discover, desktop_plugins::desktop_plugins_choose_folder, desktop_themes::desktop_theme_catalog, desktop_themes::desktop_theme_choose_folder, desktop_themes::desktop_theme_select, desktop_update::desktop_update_check, desktop_update::desktop_update_download, desktop_update::desktop_update_install, native_ffmpeg::ffmpeg_choose, native_ffmpeg::ffmpeg_choose_capture, native_ffmpeg::ffmpeg_push_frame, native_ffmpeg::ffmpeg_push_audio, native_ffmpeg::ffmpeg_encode, native_ffmpeg::ffmpeg_publish, native_ffmpeg::ffmpeg_cancel]).run(tauri::generate_context!()).expect("Unable to start Splash Animator");
 }
 #[cfg(test)]
 mod tests {

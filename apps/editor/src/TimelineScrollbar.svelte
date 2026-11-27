@@ -90,7 +90,7 @@
     height: 17px;
     overflow-x: scroll;
     overflow-y: hidden;
-    color-scheme: dark;
+    color-scheme: inherit;
   }
   .timeline-scrollbar.vertical {
     flex: 0 0 17px;

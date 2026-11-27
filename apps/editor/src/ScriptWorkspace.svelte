@@ -806,8 +806,8 @@
   .tabs {
     overflow: auto;
     flex: none;
-    border-bottom: 1px solid #424750;
-    background: #202229;
+    border-bottom: 1px solid var(--script-panel-border, #424750);
+    background: var(--script-tabs-background, #202229);
   }
   button {
     white-space: nowrap;
@@ -828,7 +828,7 @@
   .tab.current,
   .tabs > button[aria-selected='true'],
   .tree-row[aria-current] {
-    background: #393f4b;
+    background: var(--script-tab-selection, #393f4b);
   }
   .tabs .close {
     padding: 3px 5px;
@@ -948,7 +948,7 @@
   }
   .explorer-create .explorer-status {
     padding: 0;
-    color: #f2c88b;
+    color: var(--script-warning-text, #f2c88b);
   }
   .create-actions {
     display: flex;
@@ -1060,23 +1060,23 @@
   .disclosure {
     width: 11px;
     flex: none;
-    color: #a3aab9;
+    color: var(--script-secondary-text, #a3aab9);
   }
   .tree-icon {
     display: grid;
     place-items: center;
-    color: #83b8ce;
+    color: var(--script-secondary-text, #83b8ce);
     font: 10px monospace;
   }
   .tree-icon.typescript {
     border-radius: 2px;
-    background: #2b4a65;
-    color: #c6e4ff;
+    background: var(--script-tab-selection, #2b4a65);
+    color: var(--script-icon-text, #c6e4ff);
   }
   .tree-icon :global(svg) {
     width: 14px;
     height: 14px;
-    color: #d6b77b;
+    color: var(--script-warning-text, #d6b77b);
   }
   input {
     min-width: 0;
@@ -1087,17 +1087,17 @@
     margin: 0;
     padding: 6px 8px;
     font-size: 11px;
-    color: #b5bfce;
+    color: var(--script-secondary-text, #b5bfce);
     overflow-wrap: anywhere;
   }
   .explorer-error {
-    color: #f2c88b;
+    color: var(--script-warning-text, #f2c88b);
   }
   .file-bar {
     justify-content: space-between;
     gap: 6px;
     padding: 4px 8px;
-    color: #b5bfce;
+    color: var(--script-secondary-text, #b5bfce);
     font-size: 11px;
   }
   .file-bar span {
@@ -1108,6 +1108,6 @@
   }
   .message {
     padding: 3px 8px;
-    color: #f2c88b;
+    color: var(--script-warning-text, #f2c88b);
   }
 </style>

@@ -216,7 +216,7 @@
   }
   .card h3 { margin: 0 0 9px; font-size: 14px; }
   dl { display: grid; gap: 8px; margin: 0; }
-  dt { color: #a6adbf; font-size: 11px; }
+  dt { font-size: 11px; }
   dd { margin: 2px 0 0; overflow-wrap: anywhere; font-weight: 600; }
   .technical { margin-top: 12px; border-block: 1px solid #494d60; }
   .technical summary { padding: 10px 0; color: var(--accent-text); cursor: pointer; }

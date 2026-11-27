@@ -74,8 +74,8 @@
     max-height: calc(100dvh - var(--top-inset));
     overflow: hidden;
     resize: both;
-    background: #252830;
-    border: 1px solid #626979;
+    background: var(--script-panel-background, #252830);
+    border: 1px solid var(--script-panel-border, #626979);
     border-radius: 6px;
     box-shadow: 0 12px 40px #0009;
   }
@@ -87,8 +87,8 @@
     padding: 4px 10px;
     border: 0;
     border-radius: 0;
-    color: #e3e8ef;
-    background: #343944;
+    color: var(--script-panel-text, #e3e8ef);
+    background: var(--script-tabs-background, #343944);
     text-align: left;
     cursor: move;
     touch-action: none;

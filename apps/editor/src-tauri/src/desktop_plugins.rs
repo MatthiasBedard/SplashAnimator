@@ -28,7 +28,7 @@ pub struct PluginCatalog {
     issues: Vec<String>,
 }
 
-fn is_link(metadata: &Metadata) -> bool {
+pub(crate) fn is_link(metadata: &Metadata) -> bool {
     // Windows junctions and other reparse points can redirect paths too.
     #[cfg(windows)]
     {
@@ -170,6 +170,12 @@ fn default_folder() -> Result<PathBuf, String> {
         .parent()
         .map(|parent| parent.join("plugins"))
         .ok_or_else(|| "Could not locate the executable's plugin folder.".into())
+}
+
+pub(crate) fn prepare_default_folder() {
+    if let Ok(folder) = default_folder() {
+        let _ = fs::create_dir_all(folder);
+    }
 }
 
 fn main_editor(window: &tauri::WebviewWindow) -> Result<(), String> {

@@ -2,6 +2,8 @@ import { showSplashScreenEvent, showStartup } from './SplashScreen/display';
 import { license } from './license.svelte';
 import { desktop } from './storage';
 import { checkDesktopUpdate, desktopUpdate } from './desktop-update';
+import { followDesktopTheme, initializeDesktopTheme } from './desktop-themes';
+import { followWebTheme, initializeWebTheme } from './web-themes';
 
 const app = document.getElementById('app')!;
 const startup = document.getElementById('startup-screen')!;
@@ -79,6 +81,7 @@ async function boot() {
   try {
     const [{ startEditor }] = await Promise.all([import('./start-editor'), license.initialize()]);
     await startEditor(app);
+    await (desktop ? initializeDesktopTheme() : initializeWebTheme()).catch(console.warn);
     launchSplash.ready();
     window.addEventListener(showSplashScreenEvent, () => {
       if (document.getElementById(splashShell.id)) return;
@@ -104,7 +107,9 @@ if (panelSession) {
     import('svelte'),
     import('./FloatingScriptPanel.svelte'),
     import('./style.css'),
-  ]).then(([{ mount }, { default: Panel }]) =>
-    mount(Panel, { target: app, props: { session: panelSession } }),
-  );
+  ]).then(([{ mount }, { default: Panel }]) => {
+    mount(Panel, { target: app, props: { session: panelSession } });
+    if (desktop) followDesktopTheme();
+    else followWebTheme();
+  });
 } else void boot();

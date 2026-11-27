@@ -9,6 +9,7 @@ import 'monaco-editor/features/toggleTabFocusMode/register';
 import { createSourceLanguageClient } from './source-language-client';
 import { sourceSelection } from './source-selection';
 import { applyCodeEditorPreferences } from './code-editor-preferences';
+import { followMonacoTheme, monacoTheme } from './monaco-theme';
 let serial = 0;
 export function createSourceCodeEditor(
   container: HTMLElement,
@@ -38,7 +39,7 @@ export function createSourceCodeEditor(
     const editor = monaco.editor.create(container, {
       model,
       editContext: false,
-      theme: 'vs-dark',
+      theme: monacoTheme(),
       ariaLabel: 'Frame source code editor',
       automaticLayout: true,
       minimap: { enabled: false },
@@ -56,6 +57,7 @@ export function createSourceCodeEditor(
       fixedOverflowWidgets: true,
     });
     disposers.push(() => editor.dispose());
+    disposers.push(followMonacoTheme(monaco.editor.setTheme));
     disposers.push(applyCodeEditorPreferences(editor, model));
     // Monaco stores a leading BOM outside the editable buffer. Keep it in saved
     // source and project raw diagnostic/cursor positions onto the visible model.

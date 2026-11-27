@@ -1022,7 +1022,11 @@ dialog.script-preview-dialog::backdrop,
 }
 .dialog p {
   line-height: 1.7;
-  color: #a6adbf;
+}
+/* Use dialog-muted for secondary copy outside the usual prose elements. */
+.dialog :where(p:not([role='alert']), small, dt, dd),
+.dialog-muted {
+  color: var(--accent-muted);
 }
 .eyebrow {
   font-size: 9px;
@@ -1254,7 +1258,6 @@ dd {
 }
 .export-options small {
   line-height: 1.5;
-  color: #bbc0ce;
 }
 
 .layer-row.mask-layer .layer-name { color: #82d6de; }

@@ -3,10 +3,10 @@
   import { MediaQuery } from 'svelte/reactivity';
   import { showFocusedDialog, wrapDialogTab } from './dialog-focus';
 
-  const categories = ['General', 'Touch', 'Pen & Brush', 'Pencil', 'Workspace', 'Code Editor', 'Keyboard Shortcuts', 'Plugins'] as const;
+  const categories = ['General', 'Touch', 'Pen & Brush', 'Pencil', 'Workspace', 'Themes', 'Code Editor', 'Keyboard Shortcuts', 'Plugins'] as const;
   let page = $state<(typeof categories)[number]>('General');
   const compact = new MediaQuery('(max-width: 480px)');
-  let { general, touch, pen, pencil, workspace, codeEditor, shortcuts, plugins, showPlugins, close }: {
+  let { general, touch, pen, pencil, workspace, codeEditor, shortcuts, themes, plugins, desktop, close }: {
     general: Snippet;
     touch: Snippet;
     pen: Snippet;
@@ -14,13 +14,14 @@
     workspace: Snippet;
     codeEditor: Snippet;
     shortcuts: Snippet;
+    themes: Snippet;
     plugins: Snippet;
-    showPlugins: boolean;
+    desktop: boolean;
     close: () => void;
   } = $props();
-  const pages = $derived(categories.filter(category => category !== 'Plugins' || showPlugins));
+  const pages = $derived(categories.filter(category => desktop || category !== 'Plugins'));
   const content = $derived(({ General: general, Touch: touch, 'Pen & Brush': pen, Pencil: pencil,
-    Workspace: workspace, 'Code Editor': codeEditor, 'Keyboard Shortcuts': shortcuts, Plugins: plugins })[page]);
+    Workspace: workspace, 'Code Editor': codeEditor, 'Keyboard Shortcuts': shortcuts, Themes: themes, Plugins: plugins })[page]);
 
   function categoryKeys(event: KeyboardEvent & { currentTarget: HTMLButtonElement }, index: number) {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -68,7 +69,7 @@
     {/each}
   </div>
   <footer>
-    <span>Changes apply immediately.</span>
+    <span class="dialog-muted">Changes apply immediately.</span>
     <button class="primary-button" type="button" onclick={close}>Done</button>
   </footer>
 </dialog>
@@ -101,7 +102,6 @@
   .preference-page :global(.preference-fields input[type='number']) { width: 80px; }
   .preference-page :global(.preference-fields p) { margin: 4px 0 12px; }
   footer { border-top: 1px solid var(--accent-divider); }
-  footer span { color: #c5c9d5; }
   footer button { min-height: 36px; padding-inline: 18px; }
   @media (max-width: 480px) {
     .body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }

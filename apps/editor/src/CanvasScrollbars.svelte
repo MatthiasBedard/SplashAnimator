@@ -238,8 +238,8 @@
   }
   .thumb {
     position: absolute;
-    background: #8a92a3;
-    border: 1px solid #a4acbb;
+    background: var(--canvas-scroll-thumb, #8a92a3);
+    border: 1px solid var(--canvas-scroll-thumb-border, #a4acbb);
     border-radius: 7px;
   }
   .horizontal-thumb {
@@ -254,7 +254,7 @@
   .vertical,
   .corner {
     position: absolute;
-    background: #252830;
+    background: var(--canvas-scroll-track, #252830);
   }
   .horizontal {
     left: 0;

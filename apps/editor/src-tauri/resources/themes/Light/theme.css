@@ -1,0 +1,146 @@
+/*
+ * Light theme for the Splash Animator interface.
+ * Start with the shared colors below when adapting this file for a custom theme.
+ * The rules after :root apply those colors to specific parts of the editor.
+ */
+:root {
+  /* Browser controls and Monaco's built-in light or dark syntax palette. */
+  color-scheme: light;
+
+  /* Page background and the default text color inherited by controls. */
+  color: #202f44;
+  background: #eef3f9;
+
+  /* Primary buttons, focus outlines, selected controls, and subtle hover fills. */
+  --brand: #1358ad;
+  --brand-hover: #10498f;
+  --accent: #1661ba;
+  --accent-text: #174b85;
+  --accent-muted: #405b7a;
+  --accent-border: #729bc9;
+  --accent-surface: #cfe1f8;
+  --accent-subtle: #e5edf8;
+  --accent-divider: #b8c7d8;
+  --accent-wash: #cfe1f8;
+  --accent-divider-hover: #739ecc;
+
+  /* Text, form fields, and the two shades used for panels and their headers. */
+  --surface-text: #202f44;
+  --surface-dark: #e6ecf4;
+  --surface-1: #ffffff;
+  --panel-bg: #f7f9fc;
+
+  /* Script Editor chrome, including the floating header and Project Explorer.
+   * Monaco's syntax colors follow color-scheme above.
+   */
+  --script-panel-background: var(--panel-bg);
+  --script-panel-text: var(--surface-text);
+  --script-panel-border: var(--accent-divider);
+  --script-tabs-background: var(--surface-dark);
+  --script-tab-selection: var(--accent-surface);
+  --script-secondary-text: var(--accent-muted);
+  --script-icon-text: var(--accent-text);
+  --script-warning-text: #80521e;
+
+  /* Custom scrollbar tracks and thumbs around the drawing area. */
+  --canvas-scroll-track: #e0e8f2;
+  --canvas-scroll-thumb: #8fa5be;
+  --canvas-scroll-thumb-border: #758da9;
+
+  /* Application-drawn ruler surfaces, labels, and ticks. */
+  --stage-ruler-background: #e2eaf4;
+  --stage-ruler-text: #3c526b;
+  --timeline-ruler-background: #e1e9f4;
+  --timeline-ruler-text: #384e69;
+
+  /* Timeline frame cells beyond the animation and on inactive and active layers.
+   * Every fifth frame has a distinct shade to make the grid easier to count.
+   */
+  --timeline-outside: #e8edf4;
+  --timeline-row: #f0f4fa;
+  --timeline-fifth: #e1eaf5;
+  --timeline-active-row: #cfe1f8;
+  --timeline-active-fifth: #c1d7f1;
+
+  /* Frame range highlights, key markers, comment badges, and frame labels. */
+  --timeline-selection: #97bde8;
+  --timeline-outline: #254b76;
+  --timeline-key: #2c435d;
+  --timeline-hidden-key: #65768d;
+  --timeline-empty-key: #425873;
+  --timeline-comment: #027086;
+  --timeline-label: #80521e;
+
+  /* Standard browser scrollbars used by lists, dialogs, and timeline rails. */
+  scrollbar-color: #8fa5be #e6ecf4;
+}
+
+/* Main panel surfaces, including the Properties sidebar and drawing toolbar. */
+body :is(.menubar, .document-tabs, .stage-toolbar, .timeline, .timeline-bottom,
+         .tools, .inspector, .inspector-tabs, .drawing-options, .dropdown, .dialog,
+         .library-move-dialog, .dock-options-menu) {
+  color: var(--surface-text);
+  background: var(--panel-bg);
+  border-color: var(--accent-divider);
+}
+
+/* Section headers and secondary surfaces use a slightly deeper shade. */
+body :is(.panel-heading, .layer-header, .stage-caption, .script-tabs,
+         .library-record-properties, .dock-header, .document-tab-item .document-close,
+         .document-tab-list .document-tab:not(.current), .statusbar) {
+  color: var(--accent-muted);
+  background: var(--surface-dark);
+  border-color: var(--accent-divider);
+}
+
+/* Boundaries between rows, property groups, and library entries. */
+body :is(.layer-row, .library-record, .inspector-title, .property-section, .tool-divider, hr) {
+  border-color: var(--accent-divider);
+}
+
+/* Selected layers, document tabs, dock tabs, and script tabs. */
+body :is(.layer-row.current, .document-tab.current, .document-tab-item.current .document-close,
+         .dock-tabs [aria-selected='true'], .script-tabs button[aria-selected='true']) {
+  color: var(--accent-text);
+  background: var(--accent-surface);
+}
+
+/* Secondary labels stay readable on light panels, including Properties field labels. */
+body :is(.file-type, .tool-mode, .library-list-heading, .library-drop-hint, .saved-state,
+         .stage-caption span, .layer-actions button, .drawing-options span,
+         .panel-heading strong, .inspector .property-grid label, .inspector .property-line,
+         .inspector .property-section h3, .inspector .inspector-title small, .inspector .hint,
+         .dock-title h3 button, kbd) {
+  color: var(--accent-muted);
+}
+
+/* Form fields across the editor, including dropdowns and Properties inputs. */
+body :is(input, select, textarea) {
+  color: var(--surface-text);
+  background: var(--surface-1);
+  border-color: var(--accent-divider);
+}
+
+/* Unselected drawing tool icons and the separator below the tool buttons. */
+body .tools button:not(.chosen) {
+  color: var(--surface-text);
+}
+
+body .tool-divider {
+  background: var(--accent-divider);
+}
+
+/* The timeline canvas backdrop shows between frame cells and below the last layer. */
+body .frames canvas {
+  background: var(--surface-dark);
+}
+
+/* Pasteboard around the drawing stage. The stage color comes from the project. */
+body .viewport {
+  background: #cdd8e6;
+}
+
+/* Ordinary button hovers. Primary, publish, and register buttons keep their own hover colors. */
+body button:hover:not(:disabled, .primary-button, .publish, .register-prompt) {
+  background-color: var(--accent-subtle);
+}

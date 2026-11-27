@@ -89,7 +89,6 @@
   dialog::backdrop { background: #11151cbf; backdrop-filter: blur(4px); }
   dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   dl > div { padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
-  dt { opacity: .75; }
   dd { margin: 6px 0 0; font-weight: 700; font-size: 18px; overflow-wrap: anywhere; }
   .status { min-height: 2.5em; }
   progress { display: block; width: 100%; margin-top: 8px; accent-color: var(--accent); }

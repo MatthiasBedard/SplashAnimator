@@ -23,7 +23,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'none'"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' splash-theme: http://splash-theme.localhost; img-src 'self' data: blob: splash-theme: http://splash-theme.localhost; font-src 'self' splash-theme: http://splash-theme.localhost; connect-src ipc: http://ipc.localhost; object-src 'none'; frame-src 'none'; base-uri 'none'"
     }
   },
   "plugins": {
@@ -32,6 +32,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": {
+      "resources/plugins/": "plugins/",
+      "resources/themes/": "themes/"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import type { ScriptTab } from './script-workspace';
   import { applyCodeEditorPreferences } from './code-editor-preferences';
+  import { followMonacoTheme, monacoTheme } from './monaco-theme';
   let { tab, readOnly = false }: { tab: ScriptTab; readOnly?: boolean } = $props();
   let host: HTMLDivElement;
   let status = $state<'loading' | 'ready' | 'failed' | 'retrying'>('loading');
@@ -36,7 +37,7 @@
         const editor = monaco.editor.create(host, {
           model,
           automaticLayout: true,
-          theme: 'vs-dark',
+          theme: monacoTheme(),
           ariaLabel: tab.path,
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
@@ -45,6 +46,7 @@
           domReadOnly: readOnly,
         });
         disposers.push(() => editor.dispose());
+        disposers.push(followMonacoTheme(monaco.editor.setTheme));
         disposers.push(applyCodeEditorPreferences(editor, model));
         const change = model.onDidChangeContent(() => {
           tab.text = model.getValue(monaco.editor.EndOfLinePreference.TextDefined, true);

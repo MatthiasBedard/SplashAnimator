@@ -33,6 +33,7 @@ export default defineConfig({
     'shape-tween-morph.spec.ts',
     'canvas-navigation.spec.ts',
     'touch-preferences.spec.ts',
+    'web-themes.spec.ts',
     'desktop-plugins.spec.ts',
     'layer-outlines.spec.ts',
     'pencil-smoothing.spec.ts',

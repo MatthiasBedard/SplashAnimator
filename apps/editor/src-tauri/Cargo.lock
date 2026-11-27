@@ -3777,6 +3777,7 @@ dependencies = [
  "base64 0.23.1",
  "fs2",
  "gtk",
+ "percent-encoding",
  "rfd",
  "same-file",
  "serde",
