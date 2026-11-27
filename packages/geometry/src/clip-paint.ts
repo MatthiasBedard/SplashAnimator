@@ -281,9 +281,9 @@ export function splitPaintSelection(shapes: Vector[], clip: Omit<PaintClip, 'kee
   const partitions = new Map<Vector, CurvedSelection>();
   const counts: number[] = [];
   const inside = withSelectionClipping(() => clipArtwork(shapes, { ...clip, keep: 'inside' },
-    undefined, undefined, undefined, undefined, partitions));
+    undefined, undefined, undefined, undefined, partitions, true));
   const artwork = inside.length ? withSelectionClipping(() => clipArtwork(shapes, { ...clip, keep: 'outside' },
-    undefined, counts, undefined, undefined, partitions)) : [];
+    undefined, counts, undefined, undefined, partitions, true)) : [];
   return { inside, artwork, counts };
 }
 /** If an exact face walk cannot be certified, both restored halves must still
@@ -302,12 +302,26 @@ function curvedSelection(source: Vector, fill: MultiPolygon, mask: MultiPolygon,
   return { inside, outside };
 }
 
+/** Exact fallback when the restored curves cannot be certified. Both halves
+ * come from the same Boolean, so the lifted paint and the paint left behind
+ * still meet along the selection edge. */
+function polygonSelection(source: Vector, fill: MultiPolygon, mask: MultiPolygon): CurvedSelection {
+  const intersection = clipping.intersection(fill, mask);
+  if (!intersection.length) return { inside: [], outside: [source] };
+  const difference = clipping.difference(fill, mask);
+  if (!difference.length) return { inside: [source], outside: [] };
+  const pieces = (paint: MultiPolygon) =>
+    polygonVectors(source, paint, true).map(piece => ({ ...piece, id: id() }));
+  return { inside: pieces(intersection), outside: pieces(difference) };
+}
+
 function clipArtwork(
   shapes: Vector[], clip: PaintClip, recover?: (source: Vector, error: unknown) => Vector[],
   sourceCounts?: number[],
   curvedCutters?: ReadonlySet<Vector>,
   enclosedCutter?: Vector,
   shared?: Map<Vector, CurvedSelection>,
+  splitUncertifiedCurves = false,
 ): Vector[] {
   const { keep, eligible, preserveOutsideFillCurves } = clip;
   if (clip.preserveStrokes !== undefined && typeof clip.preserveStrokes !== 'boolean')
@@ -369,7 +383,10 @@ function clipArtwork(
         } catch (error) {
           if (!(error instanceof PaintCurveLossError)) throw error;
           if (recover) throw new UnresolvedPaintContour(error.message);
-          cut = { inside: [], outside: [s] };
+          // A Move or Cut lifts everything the selection footprint shows.
+          // Leaving this whole fill in its slot would strand the selected part
+          // at its old position, so cut it along the mask without curves.
+          cut = splitUncertifiedCurves ? polygonSelection(s, fill, mask) : { inside: [], outside: [s] };
         }
         shared?.set(s, cut);
       }
