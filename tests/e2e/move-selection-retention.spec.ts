@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { newProject, validateProject, type Project, type Point, type Vector } from '../../packages/document/src';
 import { holdGeometry, pendingGeometry, releaseGeometry } from './held-worker';
 import { worldPaths } from '../../packages/geometry/src/drawing';
+import { DEFAULT_FRAME_WIDTH } from '../../apps/editor/src/timeline-zoom';
 
 const rect = (id = 'art', x = 40, y = 60, fill = '#ff0000'): Vector => ({
   id,
@@ -120,6 +121,73 @@ async function setup(
     pixel,
     settle: () => expect(page.locator('main.editor')).not.toHaveAttribute('inert', ''),
   };
+}
+
+for (const [mode, kind] of [
+  ['object', 'fill'],
+  ['merge', 'bound-overlap'],
+] as const) {
+  test(`${mode} move on a held frame creates a new keyframe`, async ({ page }) => {
+    const f = await setup(page, mode, kind, true);
+    const timeline = page.getByLabel('Timeline frames', { exact: true });
+    const at = { x: 65, y: 85 };
+    const destination = { x: 115, y: 155 };
+    const red = [255, 0, 0, 255];
+    const white = [255, 255, 255, 255];
+    const goTo = async (frame: number) => {
+      await timeline.click({ position: { x: (frame + 0.5) * DEFAULT_FRAME_WIDTH, y: 10 } });
+      await expect(page.getByLabel('Go to frame', { exact: true })).toHaveValue(String(frame + 1));
+    };
+
+    await goTo(5);
+    const point = await f.screen(at);
+    await page.mouse.click(point.x, point.y);
+    await expect(page.getByLabel('Shape X', { exact: true })).toHaveValue('40');
+    expect((await f.read()).layers[0].keys.map(key => key.frame)).toEqual([0]);
+    await expect.poll(() => f.pixel(at)).toEqual(red);
+    await expect.poll(() => f.pixel(destination)).toEqual(white);
+
+    const end = await f.screen(destination);
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.down();
+    await page.mouse.move(end.x, end.y);
+    await page.mouse.move(point.x, point.y);
+    await page.mouse.up();
+    expect(await f.read()).toEqual(f.p);
+    await expect.poll(() => f.pixel(at)).toEqual(red);
+
+    await f.drag(at, destination);
+    await expect.poll(async () => (await f.read()).layers[0].keys.map(key => key.frame)).toEqual([0, 5]);
+    const moved = await f.read();
+    const original = f.p.layers[0].keys[0];
+    expect(moved.layers[0].keys[0]).toEqual(original);
+    expect(moved.layers[0].keys[1].shapes.find(shape => shape.id === 'art')).toMatchObject({ x: 90, y: 130 });
+    expect(moved.layers[0].keys[1].shapes.filter(shape => shape.id !== 'art'))
+      .toEqual(original.shapes.filter(shape => shape.id !== 'art'));
+    expect(moved.opacityBindings).toEqual(f.p.opacityBindings);
+    await expect.poll(() => f.pixel(at)).toEqual(white);
+    await expect.poll(() => f.pixel(destination)).toEqual(red);
+
+    await goTo(0);
+    await expect.poll(() => f.pixel(at)).toEqual(red);
+    await expect.poll(() => f.pixel(destination)).toEqual(white);
+    await goTo(5);
+    await expect.poll(() => f.pixel(destination)).toEqual(red);
+    await f.canvas.focus();
+    await page.keyboard.press('Control+z');
+    await expect.poll(f.read).toEqual(f.p);
+    await expect.poll(() => f.pixel(at)).toEqual(red);
+
+    await goTo(5);
+    await page.mouse.click(point.x, point.y);
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(async () => (await f.read()).layers[0].keys.map(key => key.frame)).toEqual([0, 5]);
+    const nudged = (await f.read()).layers[0].keys;
+    expect(nudged[0]).toEqual(original);
+    expect(nudged[1].shapes.find(shape => shape.id === 'art')).toMatchObject({ x: 41, y: 60 });
+    await page.keyboard.press('Control+z');
+    await expect.poll(f.read).toEqual(f.p);
+  });
 }
 
 for (const [mode, kind] of [

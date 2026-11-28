@@ -5164,17 +5164,37 @@
   let timelineTween=$state.raw<{hintSource?:{project:Project;track:string;spanId:string;validate:()=>void};timingOnly?:boolean;origin?:HTMLElement;kind:TweenKind;name:string;start:number;end:number;duration:number;initialEase:MotionEase;initialAffine:boolean;apply:(input:TimelineTweenInput,validate:()=>void)=>void}>();
   let liveShapeHints:ReturnType<typeof LiveShapeHints>|undefined=$state.raw();
   let automaticTweenPreparing=false,automaticTweenPoisoned=false;
+  function timelineRangeIncludesLayer(id: string) {
+    return (timelineBlockSelected || (dragBatchFrames && rangeEnd > rangeStart)) && selectedBatchLayers.includes(id);
+  }
+  function automaticTweenLayers() {
+    return timelineRangeIncludesLayer(layerId) ? [...selectedBatchLayers] : [layerId];
+  }
   function convertTimelineTween(kind:TweenKind){
     if(automaticTweenPreparing){automaticTweenPoisoned=true;throw Error('Tween conversion cannot reenter.');}
-    if(modal||busy||gesture||timelineDrag||playing||preview||penDraft||pendingDrawingJobs||sampledStageMode||liveCurveConfig||multiFrame)return;
+    if(modal||busy||gesture||timelineDrag||playing||preview||penDraft||pendingDrawingJobs||sampledStageMode||liveCurveConfig||multiFrame||futureTimelineBlock||futureTimelineCell)return;
     automaticTweenPreparing=true;automaticTweenPoisoned=false;menu='';
     try{
       const source=project,sourceHistory=history,revision=historyTick,at=frame,track=layerId,folder=projectFolder,savedManifest=manifest;
       const symbolScope=scopedSymbol,session=symbolScope?.session,symbolId=session?.id;
       const enclosingStamp=session?.sourceStamp;
       const currentTool=tool,scope=JSON.stringify(groupScope),selection=selectionTrajectoryStamp(selected),anchor=frameAnchor,anchorLayer=frameAnchorLayer,start=rangeStart,end=rangeEnd;
+      const layers = automaticTweenLayers(), batch = layers.length > 1;
+      const layerSelection = selectionTrajectoryStamp(layers);
       validateLiveGraphicData(source);validateProject(source);const stamp=selectionTrajectoryStamp(source);
-      const current=()=>{if(automaticTweenPoisoned||scopedSymbol!==symbolScope||session?.id!==symbolId||session?.sourceStamp!==enclosingStamp||project!==source||history!==sourceHistory||historyTick!==revision||frame!==at||layerId!==track||projectFolder!==folder||manifest!==savedManifest||tool!==currentTool||JSON.stringify(groupScope)!==scope||selectionTrajectoryStamp(selected)!==selection||frameAnchor!==anchor||frameAnchorLayer!==anchorLayer||rangeStart!==start||rangeEnd!==end||modal||sampledStageMode||liveCurveConfig||multiFrame||busy||gesture||timelineDrag||playing||preview||penDraft||pendingDrawingJobs||selectionTrajectoryStamp(source)!==stamp)throw Error('The original frame or timeline changed. Try tween conversion again.');};
+      const current = () => {
+        if (automaticTweenPoisoned || scopedSymbol !== symbolScope || session?.id !== symbolId ||
+            session?.sourceStamp !== enclosingStamp || project !== source || history !== sourceHistory ||
+            historyTick !== revision || frame !== at || layerId !== track || projectFolder !== folder ||
+            manifest !== savedManifest || tool !== currentTool || JSON.stringify(groupScope) !== scope ||
+            selectionTrajectoryStamp(selected) !== selection || frameAnchor !== anchor ||
+            frameAnchorLayer !== anchorLayer || rangeStart !== start || rangeEnd !== end ||
+            selectionTrajectoryStamp(automaticTweenLayers()) !== layerSelection || futureTimelineBlock ||
+            futureTimelineCell || modal || sampledStageMode || liveCurveConfig || multiFrame || busy ||
+            gesture || timelineDrag || playing || preview || penDraft || pendingDrawingJobs ||
+            selectionTrajectoryStamp(source) !== stamp)
+          throw Error('The original frame or timeline changed. Try tween conversion again.');
+      };
       const admitEnclosing=()=>{
         if(symbolScope&&selectionTrajectoryStamp(symbolScope.source.project)!==enclosingStamp)
           throw Error('The enclosing scene changed. Reopen the symbol timeline.');
@@ -5182,10 +5202,24 @@
       admitEnclosing();
       const snapshot=structuredClone($state.snapshot(source)) as Project;current();
       const admit=()=>{current();if(selectionTrajectoryStamp(snapshot)!==stamp)throw Error('Original tween snapshot changed.');};
-      const candidate=prepareAutomaticTimelineTween(snapshot,track,at,kind,{start,end},admit,symbolId),output=selectionTrajectoryStamp(candidate);
+      let candidate = snapshot;
+      // Prepare every row on the same detached project so symbol additions
+      // accumulate and a rejected row leaves the live selection unedited.
+      for (const id of layers) {
+        const layer = snapshot.layers.find(item => item.id === id);
+        if (!layer) throw Error('A selected layer is no longer available.');
+        try {
+          candidate = prepareAutomaticTimelineTween(candidate, id, batch ? start : at, kind, { start, end }, admit, symbolId);
+        } catch (cause) {
+          if (!batch) throw cause;
+          throw Error(`${layer.name}: ${cause instanceof Error ? cause.message : String(cause)}`);
+        }
+      }
+      const output=selectionTrajectoryStamp(candidate);
       if(output===stamp){admitEnclosing();admit();status=`Already a ${kind} tween`;return;}
       const serialized=JSON.stringify(candidate),before=structuredClone(snapshot),chosen=keyAt(candidate.layers.find(l=>l.id===track)!,at).shapes.map(s=>s.id);
-      const commit=sourceHistory.prepareRecord(before,`Convert to ${kind} tween`);
+      const label = batch ? `Convert ${layers.length} layers to ${kind} tweens` : `Convert to ${kind} tween`;
+      const commit=sourceHistory.prepareRecord(before,label);
       const recovery=symbolScope?undefined:JSON.stringify({project:candidate,folder,manifest:savedManifest});
       admit();validateProject(candidate);validateLiveGraphicData(candidate);
       if(symbolScope){
@@ -5195,7 +5229,7 @@
       }
       if(selectionTrajectoryStamp(candidate)!==output||JSON.stringify(candidate)!==serialized||selectionTrajectoryStamp(before)!==stamp)throw Error('Tween conversion candidate changed.');
       admitEnclosing();admit();
-      commit();project=candidate;selected=chosen;paintRegion=[];groupScope=[];nodeSelection=null;nodeIndices=[];tool='select';historyTick++;dirty=true;error='';status=`Convert to ${kind} tween`;
+      commit();project=candidate;selected=chosen;paintRegion=[];groupScope=[];nodeSelection=null;nodeIndices=[];tool='select';historyTick++;dirty=true;error='';status=label;
       if(recovery!==undefined)try{writeProjectRecovery(recovery);}catch{status='Recovery cache is full; save the project folder.';}
     }catch(cause){error=String(cause);}finally{automaticTweenPreparing=false;}
   }
@@ -5405,7 +5439,7 @@
         selectFutureTimelineCell(row.id, cell);
       } else {
         const range = futureTimelineBlock;
-        const preserveRange = !futureTimelineCell && (row.id === layerId || (timelineBlockSelected&&selectedBatchLayers.includes(row.id))) && cell >= rangeStart && cell <= rangeEnd;
+        const preserveRange = !futureTimelineCell && (row.id === layerId || timelineRangeIncludesLayer(row.id)) && cell >= rangeStart && cell <= rangeEnd;
         futureTimelinePick = null;
         if (layerId !== row.id) groupScope = [];
         layerId = row.id;
@@ -5550,12 +5584,15 @@
       const openMotion = openMotionAt(activeLayer, timelineAt);
       const tweenKind = openMotion ? 'motion' : tween && tweenCellKind(tween.span);
       const tweenBlocked = locked || sampledStageMode || !!liveCurveConfig || multiFrame;
+      const conversionBlocked = timelineAt >= project.duration || !!futureTimelineBlock || sampledStageMode ||
+        !!liveCurveConfig || multiFrame ||
+        (automaticTweenLayers().length === 1 && (locked || !keyAt(activeLayer, frame).shapes.length));
       const removalBlocked = activeLayer.locked || timelineAt >= project.duration || multiFrame ||
         crossLayerMode || (timelineBlockSelected && project.layers.some(layer =>
           selectedBatchLayers.includes(layer.id) && layer.locked));
       items = [
-        { label: 'Convert to motion tween', disabled: timelineAt>=project.duration || locked || !keyAt(activeLayer,frame).shapes.length || sampledStageMode || !!liveCurveConfig || multiFrame, run:()=>convertTimelineTween('motion') },
-        { label: 'Convert to shape tween', disabled: timelineAt>=project.duration || locked || !keyAt(activeLayer,frame).shapes.length || sampledStageMode || !!liveCurveConfig || multiFrame, run:()=>convertTimelineTween('shape') },
+        { label: 'Convert to motion tween', disabled: conversionBlocked, run:()=>convertTimelineTween('motion') },
+        { label: 'Convert to shape tween', disabled: conversionBlocked, run:()=>convertTimelineTween('shape') },
         ...(tweenKind==='shape' && tween && !scopedSymbol && activeLayer.liveMotionSpans?.some(s=>s.id===tween.span.id && typeof s.correspondence?.nodes==='object' && s.correspondence.nodes.shapes) ? [{
           label:'Edit shape hints', disabled:tweenBlocked || !activeLayer.visible,
           run:()=>openTimelineTween('shape',false,tween.span.id),
@@ -5876,6 +5913,50 @@
     stageDispatch.release();
   }
 
+  function sampleMovedTweenEndpoints(candidate: Project, track: string, at: number) {
+    const layer = candidate.layers.find(layer => layer.id === track)!;
+    for (const span of layer.liveMotionSpans ?? []) {
+      if (span.start !== at && span.end !== at) continue;
+      const sampler = createMotionFrameSampler(candidate, track, span);
+      try { sampler.sample(Math.floor((span.start + span.end) / 2)); }
+      finally { sampler.dispose(); }
+    }
+  }
+
+  function moveHeldSelection(
+    before: Project, offset: Point, junctionEdits: Iterable<Vector> = [], admit = () => {},
+  ) {
+    const source = project, signature = projectRenderSignature, revision = historyTick;
+    const at = frame, track = layerId, scope = scopedSymbol, moving = new Set(selected);
+    const current = () => {
+      admit();
+      if (project !== source || projectRenderSignature !== signature || historyTick !== revision ||
+          frame !== at || layerId !== track || scopedSymbol !== scope || !samePaintIds([...moving], selected))
+        throw Error('The original selection or timeline changed. Try moving again.');
+    };
+    const candidate = prepareTimelineFrameInsertion(before, track, at, 'key', current, scope?.session.id);
+    const index = candidate.layers.findIndex(layer => layer.id === track);
+    const layer = candidate.layers[index];
+    const key = layer.keys.find(key => key.frame === at)!;
+    const moved = key.shapes.filter(shape => moving.has(shape.id));
+    if (moved.length !== moving.size) throw Error('The inserted key lost selected artwork.');
+    for (const shape of moved) {
+      shape.x += offset.x;
+      shape.y += offset.y;
+    }
+    const replacements = new Map([...junctionEdits].map(shape => [shape.id, shape]));
+    key.shapes = key.shapes.map(shape => replacements.get(shape.id) ?? shape);
+    // Tween endpoints keep their artwork order and the playback settings from F6.
+    if (layer.drawingMode === 'merge' && !key.openMotionTween && !tweenOwnsPaintKey(layer, at))
+      key.shapes.sort((a,b) => Number(moving.has(a.id)) - Number(moving.has(b.id)));
+    validateLiveGraphicData(candidate);
+    validateProject(candidate);
+    sampleMovedTweenEndpoints(candidate, track, at);
+    current();
+    // Only the target layer changes when inserting within the playable timeline.
+    project.layers[index] = layer;
+  }
+
   function updateLiveTweenMove(e: PointerEvent, finish: boolean) {
     const move = liveTweenMove;
     if (!move || move.pointer !== e.pointerId) return;
@@ -5912,12 +5993,7 @@
       }
       validateProject(candidate);
       validateLiveGraphicData(candidate);
-      for (const span of layer.liveMotionSpans ?? []) {
-        if (span.start !== at && span.end !== at) continue;
-        const sampler = createMotionFrameSampler(candidate, track, span);
-        try { sampler.sample(Math.floor((span.start + span.end) / 2)); }
-        finally { sampler.dispose(); }
-      }
+      sampleMovedTweenEndpoints(candidate, track, at);
       const label = 'Move tween artwork';
       const prepared = selectionTrajectoryStamp(candidate);
       const recovery = JSON.stringify({ project: candidate, folder: projectFolder, manifest });
@@ -6634,7 +6710,12 @@
       if(!canvas.hasPointerCapture(e.pointerId)||!ordinaryPreviewCurrent(owner)){cancelGesture();status='Selection preview cancelled because its source or view changed.';return;}
       try{
         let operation:Matrix;
-        if(g.kind==='move'){const delta=snapPosition({x:p.x-g.start.x,y:p.y-g.start.y},e.altKey,owner.originals);operation=[1,0,0,1,delta.x,delta.y];}
+        if(g.kind==='move'){
+          const offset={x:p.x-g.start.x,y:p.y-g.start.y};
+          const held=timelineHeldKey(activeLayer,frame).frame!==frame;
+          const delta=held&&!offset.x&&!offset.y?offset:snapPosition(offset,e.altKey,owner.originals);
+          operation=[1,0,0,1,delta.x,delta.y];
+        }
         else {const f=g.transform!.free!,pointer=ordinaryTransformPoint(e,sampleRect);
           operation=previewSelectionTransform(f.frame,f.hit,owner.pivot,g.start,pointer,e).operation;}
         if(!operation.every(Number.isFinite))throw Error('Invalid selection preview transform.');
@@ -6836,11 +6917,25 @@
           gradientPart === 'from' ? target : gradientPoint(original.gradient!, target, true);
     }
     if (g.kind === 'move') {
-      const originals = keyAt(
-        g.before.layers.find((l) => l.id === layerId)!,
-        frame,
-      ).shapes.filter((s) => selected.includes(s.id));
-      const delta = snapPosition({ x: p.x - g.start.x, y: p.y - g.start.y }, e.altKey, originals);
+      const originalKey = keyAt(g.before.layers.find(l => l.id === layerId)!, frame);
+      const originals = originalKey.shapes.filter(s => selected.includes(s.id));
+      const offset = { x: p.x - g.start.x, y: p.y - g.start.y };
+      const held = originalKey.frame !== frame;
+      if (held && !originals.length) return;
+      const delta = held && !offset.x && !offset.y ? offset : snapPosition(offset, e.altKey, originals);
+      if (held) {
+        // This path renders directly from the document during the drag. Isolate
+        // its edits in a provisional key, and discard it if the move is a no-op.
+        if (!delta.x && !delta.y) {
+          g.heldMoveOffset = undefined;
+          if (keyAt(activeLayer, frame).frame === frame)
+            activeLayer.keys = activeLayer.keys.filter(key => key.frame !== frame);
+          snapLines = {};
+          return;
+        }
+        insertKey(activeLayer, frame);
+        g.heldMoveOffset = delta;
+      }
       try { applyAnchorEdits(g.strokeJunctions?.prepare(delta) ?? []); }
       catch (cause) { cancelGesture(); error=String(cause); return; }
       shapes
@@ -7049,11 +7144,28 @@
       }catch(cause){cancelGesture();error=String(cause);return;}
     }
     const preparedOrdinaryRelease = ordinaryPreview?.gesture === g;
+    let preparedHeldMove = false;
+    if (g.kind === 'move' && g.heldMoveOffset) {
+      try {
+        moveHeldSelection(g.before, g.heldMoveOffset, g.strokeJunctions?.prepare(g.heldMoveOffset));
+        preparedHeldMove = true;
+        error = '';
+      } catch (cause) { cancelGesture(); error = String(cause); return; }
+    }
     if(ordinaryPreview?.gesture===g){
       const owner=ordinaryPreview;
       try{
-        if(!ordinaryPreviewCurrent(owner))throw Error('The original selection changed before release.');
-        if(owner.operation.some((n,i)=>n!==[1,0,0,1,0,0][i])){
+        const admit = () => {
+          if (!ordinaryPreviewCurrent(owner)) throw Error('The original selection changed before release.');
+        };
+        admit();
+        const moved = owner.operation.some((n,i)=>n!==[1,0,0,1,0,0][i]);
+        const key = keyAt(activeLayer, frame);
+        if (moved && g.kind === 'move' && key.frame !== frame) {
+          const offset = { x: owner.operation[4], y: owner.operation[5] };
+          moveHeldSelection(g.before, offset, owner.junctionEdits?.values(), admit);
+          preparedHeldMove = true;
+        } else if (moved) {
           const result=clone(owner.originals);
           if(g.kind==='move')for(const s of result){s.x+=owner.operation[4];s.y+=owner.operation[5];}
           else transformSelectionVectors(result, owner.operation,
@@ -7062,28 +7174,22 @@
             ...(owner.junctionEdits ?? []),
             ...result.map(s => [s.id, s] as const),
           ]);
-          const key=keyAt(activeLayer,frame),art=key.shapes.map(s=>replacements.get(s.id)??s);
+          const art = key.shapes.map(s => replacements.get(s.id) ?? s);
           if(g.kind==='move' && activeLayer.drawingMode==='merge' && !keepsTweenPaintContours()){
             const moving=new Set(result.map(s=>s.id));
             art.sort((a,b)=>Number(moving.has(a.id))-Number(moving.has(b.id)));
           }
-          const candidate={...project,layers:project.layers.map(l=>l.id===layerId?{...l,keys:l.keys.map(k=>k===key?{...k,shapes:art}:k)}:l)};
+          const layer = { ...activeLayer, keys: activeLayer.keys.map(k => k === key ? { ...k, shapes: art } : k) };
+          const candidate = { ...project, layers: project.layers.map(l => l.id === layerId ? layer : l) };
           validateLiveGraphicData(candidate);validateProject(candidate);
           if (activeLayer.liveMotionSpans?.some(span => span.start === frame || span.end === frame)) {
             // The sampler owns detached project data, including symbol definitions.
-            const sampled = clone(candidate);
-            const layer = sampled.layers.find(track => track.id === layerId)!;
-            for (const span of layer.liveMotionSpans ?? []) {
-              if (span.start !== frame && span.end !== frame) continue;
-              const sampler = createMotionFrameSampler(sampled, layerId, span);
-              try { sampler.sample(Math.floor((span.start + span.end) / 2)); }
-              finally { sampler.dispose(); }
-            }
+            sampleMovedTweenEndpoints(clone(candidate), layerId, frame);
           }
-          if(!ordinaryPreviewCurrent(owner))throw Error('The original selection changed during release preparation.');
-          key.shapes=art;
+          admit();
+          key.shapes = art;
         }
-        ordinaryPreview=null;if(owner.operation.some((n,i)=>n!==[1,0,0,1,0,0][i]))error='';
+        ordinaryPreview=null;if(moved)error='';
       }catch(cause){cancelGesture();error=String(cause);return;}
     }
     snapLines = {};
@@ -7332,7 +7438,7 @@
     if ((g.kind === 'move' || movingFloatingPaint) && selected.length && activeLayer.drawingMode === 'merge') {
       if (JSON.stringify(g.before) === projectRenderSignature) return;
       const pivot = g.kind === 'resize' && g.transform?.handle === 'pivot';
-      if (!preparedOrdinaryRelease) {
+      if (!preparedOrdinaryRelease && !preparedHeldMove) {
         const key = keyAt(activeLayer, frame), moving = new Set(selected);
         const artwork = [...key.shapes].sort((a,b)=>Number(moving.has(a.id))-Number(moving.has(b.id)));
         try { validateRetainedDrawing(activeLayer, key, artwork); }
@@ -7340,7 +7446,9 @@
         if (!pivot) key.shapes = artwork;
       }
       changed(g.before, g.kind === 'move' ? 'Move selection' : pivot ? 'Move transform pivot' : 'Transform selection');
-      if (!pivot) holdPaintDrop({kind:'objects',selected:[...selected]},
+      const key = keyAt(activeLayer, frame);
+      if (!pivot && !(preparedHeldMove && (key.openMotionTween || tweenOwnsPaintKey(activeLayer, frame))))
+        holdPaintDrop({kind:'objects',selected:[...selected]},
         keyAt(g.before.layers.find(layer => layer.id === layerId)!, frame).shapes);
       return;
     }
@@ -11754,13 +11862,19 @@
       const preserveContours = keepsTweenPaintContours();
       const deferPaint = !preserveContours && activeLayer.drawingMode === 'merge';
       const revision = historyTick;
+      const createsKey = keyAt(activeLayer, frame).frame !== frame;
       const before = edit('Nudge selection', () => {
         const chosen = new Set(selected);
         const delta = {x:key==='arrowleft'?-n:key==='arrowright'?n:0,y:key==='arrowup'?-n:key==='arrowdown'?n:0};
         const junctions = activeLayer.drawingMode === 'merge'
           ? captureStrokeMoveJunctions(clone(shapes), chosen)
           : undefined;
-        applyAnchorEdits(junctions?.prepare(delta) ?? []);
+        const edits = junctions?.prepare(delta);
+        if (createsKey) {
+          moveHeldSelection(clone(project), delta, edits);
+          return;
+        }
+        applyAnchorEdits(edits ?? []);
         for (const s of shapes) if (chosen.has(s.id)) {
           s.x += delta.x;
           s.y += delta.y;
@@ -11771,7 +11885,9 @@
           validateProject(project);
         }
       }, preserveContours || deferPaint);
-      if (before && deferPaint && historyTick !== revision)
+      const authored = keyAt(activeLayer, frame);
+      if (before && deferPaint && historyTick !== revision &&
+          !(createsKey && (authored.openMotionTween || tweenOwnsPaintKey(activeLayer, frame))))
         holdPaintDrop({kind:'objects',selected:[...selected]},
           keyAt(before.layers.find(layer => layer.id === layerId)!, frame).shapes);
     } else if (shortcut === 'symbol') {

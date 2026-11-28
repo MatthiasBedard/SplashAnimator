@@ -84,6 +84,51 @@ async function setup(
   };
   return { p, timeline, canvas, scroll, read, future, point, open, pixel, history };
 }
+for (const kind of ['motion', 'shape'] as const) {
+  test(`dragging on a held frame continues the ${kind} tween like F6`, async ({ page }) => {
+    const f = await setup(page, true, false, false, kind);
+    const at = 11;
+    const seek = async (frame: number) => {
+      const point = await f.point(frame);
+      await page.mouse.click(point.x, point.y);
+    };
+    await seek(at);
+    await f.timeline.press('F6');
+    await expect.poll(async () => (await f.read()).layers[1].liveMotionSpans?.map(span => [span.start, span.end]))
+      .toEqual([[0, 8], [8, at]]);
+    const inserted = await f.read();
+    await f.timeline.press('Control+z');
+    await expect.poll(f.read).toEqual(f.p);
+    await seek(at);
+
+    const box = (await f.canvas.boundingBox())!;
+    const x = box.x + box.width / 2 + 97 - 80;
+    const y = box.y + box.height / 2 + 20 - 50;
+    await page.keyboard.down('Alt');
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 30, y, { steps: 4 });
+    await page.mouse.up();
+    await page.keyboard.up('Alt');
+
+    await expect.poll(async () => (await f.read()).layers[1].liveMotionSpans?.map(span => [span.start, span.end]))
+      .toEqual([[0, 8], [8, at]]);
+    const moved = await f.read();
+    const expected = structuredClone(inserted);
+    expected.layers[1].keys.find(key => key.frame === at)!.shapes[0].x += 30;
+    expected.layers[1].liveMotionSpans![1].id = moved.layers[1].liveMotionSpans![1].id;
+    expect(moved).toEqual(expected);
+    await seek(9);
+    await expect.poll(() => f.canvas.evaluate((canvas: HTMLCanvasElement) =>
+      Array.from(canvas.getContext('2d')!.getImageData(
+        Math.round(canvas.width / 2 + (112 - 80) * devicePixelRatio),
+        Math.round(canvas.height / 2 + (20 - 50) * devicePixelRatio), 1, 1,
+      ).data),
+    )).toEqual([255, 0, 0, 255]);
+    await f.history(moved);
+  });
+}
+
 for (const action of ['F6', 'F7'] as const)
   test(`clicking a future cell leaves the playhead in place until ${action} inserts there`, async ({
     page,

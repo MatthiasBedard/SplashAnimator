@@ -12,6 +12,7 @@ async function setup(
   artwork: 'plain' | 'paint' | 'bitmap' = 'plain',
   animatedGraphic = false,
   remembered = false,
+  otherTrack?: 'artwork' | 'blank',
 ) {
   const p = newProject();
   p.width = 300;
@@ -125,7 +126,17 @@ async function setup(
         ]
       : []),
   ];
-  p.layers.push(newLayer('Other'));
+  const other = newLayer('Other');
+  if (otherTrack === 'artwork') {
+    other.drawingMode = p.layers[0].drawingMode;
+    other.keys = p.layers[0].keys.map(key => ({
+      ...key,
+      shapes: key.shapes.map(shape => ({ ...shape, id: 'blue', y: shape.y + 80, fill: '#0000ff' })),
+    }));
+  }
+  p.layers.push(other);
+  if (otherTrack === 'blank') p.layers.reverse();
+  if (otherTrack) p.layers.unshift(newLayer('Outside selection'));
   if (remembered) createBasicMotionSpan(p, [p.layers[0].id], 0, 8, 'linear');
   await page.addInitScript(
     (p) =>
@@ -142,16 +153,16 @@ async function setup(
     canvas = page.getByLabel('Drawing stage', { exact: true });
   const read = () =>
     page.evaluate(() => JSON.parse(localStorage.getItem('splash-recovery-v1')!).project as Project);
-  async function point(at: number) {
+  async function point(at: number, row = 1) {
     const b = (await timeline.boundingBox())!;
-    return { x: b.x + at * 18 + 9, y: b.y + 25 + 28 + 14 };
+    return { x: b.x + at * 18 + 9, y: b.y + 25 + row * 28 + 14 };
   }
   async function seek(at: number) {
     const q = await point(at);
     await page.mouse.click(q.x, q.y);
   }
-  async function convert(kind: 'motion' | 'shape', at = 0) {
-    const q = await point(at);
+  async function convert(kind: 'motion' | 'shape', at = 0, row = 1) {
+    const q = await point(at, row);
     await page.mouse.click(q.x, q.y, { button: 'right' });
     await page.getByRole('menuitem', { name: `Convert to ${kind} tween`, exact: true }).click();
   }
@@ -172,6 +183,48 @@ async function setup(
     );
   return { p, timeline, canvas, point, seek, convert, read, pixel };
 }
+
+async function selectTweenBlock(page: Page, f: Awaited<ReturnType<typeof setup>>) {
+  const start = await f.point(0, 0), end = await f.point(8, 1);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.mouse.move(end.x, end.y, { steps: 5 });
+  await page.mouse.up();
+  await expect(f.timeline).toHaveAccessibleDescription(/Frames 1 to 9 selected across 2 layers/);
+}
+
+for (const kind of ['motion', 'shape'] as const) {
+  test(`converts a selected block across layers to a ${kind} tween`, async ({ page }) => {
+    const f = await setup(page, kind === 'motion' ? 'object' : 'merge', true, false, false, 'plain', false, false, 'artwork');
+    await selectTweenBlock(page, f);
+    await f.convert(kind, 4, 1);
+
+    await expect.poll(async () => (await f.read()).layers.map(layer =>
+      layer.liveMotionSpans?.map(({ start, end }) => [start, end]) ?? [],
+    )).toEqual([[], [[0, 8]], [[0, 8]]]);
+    const converted = await f.read();
+    expect(converted.layers[0]).toEqual(f.p.layers[0]);
+    expect(converted.layers.slice(1).map(layer => layer.keys[2])).toEqual(f.p.layers.slice(1).map(layer => layer.keys[2]));
+    expect(converted.layers.slice(1).map(layer => layer.keys[0].shapes[0].kind))
+      .toEqual(kind === 'motion' ? ['symbol', 'symbol'] : ['rectangle', 'rectangle']);
+    await expect(f.timeline).toHaveAccessibleDescription(/Frames 1 to 9 selected across 2 layers/);
+    await f.timeline.press('Control+z');
+    await expect.poll(f.read).toEqual(f.p);
+    await f.timeline.press('Control+Shift+z');
+    await expect.poll(f.read).toEqual(converted);
+    await f.timeline.click({ position: { x: 4 * 18 + 9, y: 10 } });
+    await expect.poll(() => f.pixel(80, 70)).toEqual([255, 0, 0, 255]);
+    await expect.poll(() => f.pixel(80, 150)).toEqual([0, 0, 255, 255]);
+  });
+}
+
+test('a blank selected layer rejects the whole tween conversion', async ({ page }) => {
+  const f = await setup(page, 'object', true, false, false, 'plain', false, false, 'blank');
+  await selectTweenBlock(page, f);
+  await f.convert('motion', 4, 0);
+  await expect(page.getByRole('alert')).toContainText('Other');
+  expect(await f.read()).toEqual(f.p);
+});
 
 for (const [mode, remembered] of [['symbol', false], ['movie', false], ['symbol', true]] as const) {
   test(`Effects track ${mode} keyframes in a ${remembered ? 'remembered' : 'live'} motion tween`, async ({ page }) => {
@@ -486,6 +539,25 @@ test('changing an inserted symbol key updates the real tween on both sides', asy
   await f.seek(6);
   await expect.poll(() => f.pixel(95, 65)).toEqual([255, 0, 0, 255]);
 });
+test('nudging on the frame after an open motion tween carries its settings to the new key', async ({ page }) => {
+  const f = await setup(page, 'object', false);
+  await f.convert('motion');
+  const opened = await f.read();
+  const start = opened.layers[0].keys[0];
+  expect(start.openMotionTween).toBeDefined();
+  await f.seek(1);
+  const box = (await f.canvas.boundingBox())!;
+  await page.mouse.click(box.x + box.width / 2 - 150 + 30, box.y + box.height / 2 - 100 + 40);
+  await f.canvas.press('ArrowRight');
+  await expect.poll(async () => (await f.read()).layers[0].keys.map(key => key.frame)).toEqual([0, 1]);
+  const [original, moved] = (await f.read()).layers[0].keys;
+  expect(original).toEqual(start);
+  expect(moved.openMotionTween).toEqual(start.openMotionTween);
+  expect(moved.shapes[0].x).toBe(start.shapes[0].x + 1);
+  await f.canvas.press('Control+z');
+  await expect.poll(f.read).toEqual(opened);
+});
+
 test('dragging on an automatically converted tween inserts a key and updates both sides', async ({ page }) => {
   const f = await setup(page);
   await f.convert('motion');

@@ -104,6 +104,7 @@ export type EditorGesture = {
       multiSelect?: { form: 'box' | 'lasso'; mode: SelectionMode };
       attachedFill?: import('../../../packages/geometry/src/attached-fill').AttachedFillEdit;
       strokeJunctions?: ReturnType<typeof import('./subselection').captureStrokeMoveJunctions>;
+      heldMoveOffset?: Point;
       edge?: {owner:string;outline:Vector;index:number;end:number;t:number};
       directReshape?: true;
       nodeBox?: { sets: Record<string, number[]>; mode: SelectionMode; context: string };
